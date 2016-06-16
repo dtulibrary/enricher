@@ -18,7 +18,7 @@ defmodule OpenUrl do
   @doc "Get rid of nil values and correct key names"
   def rft_data(ou) do
      Map.from_struct(ou)
-     |> Map.delete(:id)
+     |> Map.delete(:id) # id is Metastore specific - should be packed as rft_id
      |> Enum.reject(fn {x, y} -> is_nil(y) end)
      |> Enum.into(Map.new, fn {x, y} -> {"rft.#{x}", y} end)
      |> Map.merge(special_data(ou))
