@@ -40,9 +40,14 @@ defmodule SolrDoc do
   }
 
   def data(sd) do
+    # take first vals from multivalued fields 
+    transform = fn
+      {x, [top | tail]} -> {x, top}
+      {x, y} -> {x, y}
+    end
     Map.from_struct(sd)
     |> Enum.reject(fn {x, y} -> is_nil(y) end)
-    |> Enum.into(Map.new, fn {x,y} -> {x, transform_value(y)} end)
+    |> Enum.into(Map.new, &transform.(&1))
   end
 
   @doc "Convert keys to keys for OpenUrl module"
@@ -58,7 +63,4 @@ defmodule SolrDoc do
   def field_map(sd) do
     Map.get(@field_mappings, sd.format)
   end
-
-  def transform_value(val) when is_list(val), do: hd(val)
-  def transform_value(val), do: val
 end
