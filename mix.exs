@@ -14,7 +14,13 @@ defmodule Enricher.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :httpoison, :exconstructor]]
+    [
+      applications: [
+        :logger,
+        :httpoison,
+        :exconstructor
+      ]
+    ]
   end
 
   # Dependencies can be Hex packages:
@@ -30,7 +36,8 @@ defmodule Enricher.Mixfile do
     [
       {:httpoison, "~> 0.8"},
       {:poison, "~> 2.1"},
-      {:exconstructor, "~> 1.0.2"}
+      {:exconstructor, "~> 1.0.2"},
+      {:sweet_xml, "~> 0.6.1"},
     ]
   end
 end

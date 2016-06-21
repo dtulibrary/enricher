@@ -21,6 +21,9 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+config :enricher, sfx_metadata_api: HoldingsMetadataAPI
+config :enricher, sfx_file_location: "tmp/institutional_holding.xml"
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
