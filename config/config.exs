@@ -21,7 +21,8 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
-config :enricher, sfx_metadata_api: HoldingsMetadataAPI
+config :enricher, sfx_metadata_api: HoldingsMetadataApi
+config :enricher, holdings_fetcher: HoldingsApi.Fetcher
 config :enricher, sfx_file_location: "tmp/institutional_holding.xml"
 
 # It is also possible to import configuration files, relative to this

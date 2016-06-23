@@ -20,6 +20,10 @@ defmodule QuerySolr do
     { :ok, body }
   end
 
+  def handle_response({:error, %HTTPoison.Error{reason: reason}}) do
+    raise "Error querying solr: #{reason}"
+  end
+
   @doc """
   This method signature is incorrect
   """
