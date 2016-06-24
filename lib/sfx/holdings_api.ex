@@ -1,4 +1,5 @@
 defmodule HoldingsApi do
+  import SweetXml
 
   @fetcher Application.get_env(:enricher, :holdings_fetcher, HoldingsApi.Fetcher)
   @file_url Application.get_env(:enricher, :institutional_holdings_url)
@@ -25,19 +26,48 @@ defmodule HoldingsApi do
   end
 
   # unzip in chunks until there are no more left
-  def unzip_loop(z, handler, {:more, decompressed}) do
+  defp unzip_loop(z, handler, {:more, decompressed}) do
     handler.(decompressed)
     unzip_loop(z, handler, :zlib.inflateChunk(z))
   end
 
   # the final unzip method, called when there are no more chunks remaining
-  def unzip_loop(z, handler, decompressed) do
+  defp unzip_loop(_, handler, decompressed) do
     handler.(decompressed)
   end
 
-  # def handler(output) do
-  #   IO.puts output
-  # end
+  def parse(fp) do
+    stream = File.stream! fp
+    map = %{}
+    SweetXml.stream_tags(stream, [:item])
+    |> Stream.map(fn {_, doc} -> parse_func(doc) end)
+    |> Enum.reduce(map, fn(x, acc) -> Map.merge(acc, x) end)
+  end
+
+  defp parse_func(doc) do
+    identifier = get_best_identifier(doc)
+    from_year = xpath(doc, ~x"//coverage/from/year/text()"s)
+    from_vol = xpath(doc, ~x"//coverage/from/volume/text()"s)
+    from_issue = xpath(doc, ~x"//coverage/from/issue/text()"s)
+    to_year =  xpath(doc, ~x"//coverage/to/year/text()"s)
+    to_vol = xpath(doc, ~x"//coverage/to/volume/text()"s)
+    to_issue = xpath(doc, ~x"//coverage/to/issue/text()"s)
+    from = {from_year, from_vol, from_issue}
+    to = {to_year, to_vol, to_issue}
+    %{identifier => [from: from, to: to]}
+  end
+
+  # Take identifier in preferential order (recursive)
+  def get_best_identifier(doc) do
+    get_best_identifier(doc, ["issn", "eissn", "isbn"])
+  end
+
+  defp get_best_identifier(doc, [type|others]) do
+    case xpath(doc, ~x"//#{type}/text()"o) do # o flag means return nil if empty
+      nil -> get_best_identifier(doc, others)
+      x -> List.to_string(x)
+    end
+  end
 
   defmodule Fetcher do
     def get(url) do

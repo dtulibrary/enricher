@@ -301,4 +301,46 @@
    <to></to>
   </coverage>
  </item>
+ <item type="electronic">
+  <sfx_id>111055183882000</sfx_id>
+  <object_type>JOURNAL</object_type>
+  <title>Physica status solidi. C, Conferences and critical reviews</title>
+  <title>PHYSICA STATUS SOLIDI. CONFERENCES</title>
+  <title>PHYSICA STATUS SOLIDI. C</title>
+  <title>PHYSICA STATUS SOLIDI C</title>
+  <issn>1610-1634</issn>
+  <coverage>
+   <from>
+    <year>2003</year>
+    <issue>1</issue>
+   </from>
+   <to>
+    <year>2005</year>
+    <volume>2</volume>
+    <issue>12</issue>
+   </to>
+  </coverage>
+  <coverage>
+   <from>
+    <year>2003</year>
+    <issue>1</issue>
+   </from>
+   <to>
+    <year>2005</year>
+    <volume>2</volume>
+    <issue>12</issue>
+   </to>
+  </coverage>
+  <coverage>
+   <from>
+    <year>2003</year>
+    <issue>1</issue>
+   </from>
+   <to>
+    <year>2005</year>
+    <volume>2</volume>
+    <issue>12</issue>
+   </to>
+  </coverage>
+ </item>
 </institutional_holdings>
