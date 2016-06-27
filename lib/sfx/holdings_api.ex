@@ -38,23 +38,30 @@ defmodule HoldingsApi do
 
   def parse(fp) do
     stream = File.stream! fp
-    map = %{}
     SweetXml.stream_tags(stream, [:item])
     |> Stream.map(fn {_, doc} -> parse_func(doc) end)
-    |> Enum.reduce(map, fn(x, acc) -> Map.merge(acc, x) end)
+    |> Enum.reduce(%{}, fn(x, acc) -> Map.merge(acc, x) end)
   end
 
   defp parse_func(doc) do
     identifier = get_best_identifier(doc)
-    from_year = xpath(doc, ~x"//coverage/from/year/text()"s)
-    from_vol = xpath(doc, ~x"//coverage/from/volume/text()"s)
-    from_issue = xpath(doc, ~x"//coverage/from/issue/text()"s)
-    to_year =  xpath(doc, ~x"//coverage/to/year/text()"s)
-    to_vol = xpath(doc, ~x"//coverage/to/volume/text()"s)
-    to_issue = xpath(doc, ~x"//coverage/to/issue/text()"s)
-    from = {from_year, from_vol, from_issue}
-    to = {to_year, to_vol, to_issue}
+    from = parse_section(doc, "from")
+    to = parse_section(doc, "to")
     %{identifier => [from: from, to: to]}
+  end
+
+  # take year, volume and issue from section and return a tuple of strings
+  # e.g. {"1966", "14", "1"}
+  def parse_section(doc, section) do
+    Enum.map(["year", "volume", "issue"], fn(x) -> parse_text(doc, section, x) end)
+    |> Enum.reduce({}, fn(x, acc) -> Tuple.append(acc, x) end)
+  end
+
+  defp parse_text(doc, section, unit) do
+    case xpath(doc, ~x"//coverage/#{section}/#{unit}/text()") do
+      nil -> ""
+      x -> List.to_string(x)
+    end
   end
 
   # Take identifier in preferential order (recursive)
@@ -68,6 +75,9 @@ defmodule HoldingsApi do
       x -> List.to_string(x)
     end
   end
+
+  # if no identifiers present in doc
+  defp get_best_identifier(_, []), do: "UNDEFINED"
 
   defmodule Fetcher do
     def get(url) do

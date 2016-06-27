@@ -11,6 +11,17 @@
   <eissn>1095-712X</eissn>
   <coverage>
    <from>
+    <year>1966</year>
+    <volume>14</volume>
+    <issue>1</issue>
+   </from>
+   <to></to>
+   <embargo>
+    <days_not_available>2190</days_not_available>
+   </embargo>
+  </coverage>
+  <coverage>
+   <from>
     <year>1997</year>
     <volume>57</volume>
     <issue>1</issue>
