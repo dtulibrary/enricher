@@ -64,9 +64,10 @@ defmodule SolrDoc do
     Map.get(@field_mappings, sd.format)
   end
 
-  def journal_holdings(solr_doc) do
-    {:ok, hld} = Poison.decode(solr_doc.holdings_ssf)
-    holdings = SolrDoc.Holdings.new(hld)
+  def journal_holdings(%SolrDoc{holdings_ssf: nil}), do: "NONE"
+
+  def journal_holdings(%SolrDoc{holdings_ssf: holdings_json}) do
+    holdings = SolrDoc.Holdings.from_json(holdings_json)
     [
       from: SolrDoc.Holdings.from(holdings),
       to: SolrDoc.Holdings.to(holdings),
@@ -77,6 +78,17 @@ defmodule SolrDoc do
   defmodule Holdings do
     defstruct [:fromyear, :fromvolume, :fromissue, :toyear, :tovolume, :toissue, :embargo]
     use ExConstructor
+
+    def from_json([head|_]) do
+      from_json(head)
+    end
+
+    def from_json(json_blob) do
+      case Poison.decode(json_blob) do
+        {:ok, hld} -> Holdings.new(hld)
+        {:error, _} -> IO.inspect json_blob
+      end
+    end
 
     def from(holdings) do
       [holdings.fromyear, holdings.fromvolume, holdings.fromissue]

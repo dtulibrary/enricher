@@ -7,7 +7,7 @@ defmodule Util do
     def to_timestamp(dt) do
       dt
       |> :calendar.datetime_to_gregorian_seconds
-      |> -(@epoch)
+      |> Kernel.-(@epoch)
     end
 
     def unix_epoch, do: @unix_epoch
