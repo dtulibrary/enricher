@@ -13,4 +13,9 @@ defmodule SolrClientTest do
     aqs = SolrClient.article_query_string
     assert SolrClient.TestFetcher.get(aqs) == SolrClient.TestFetcher.all_articles_response
   end
+
+  test "get_coverage" do
+    details = [from: {"1947", "42", ""}, to: {"1967", "62", ""}, embargo: 0]
+    assert SolrClient.get_coverage("issn", "03702634") == details
+  end
 end

@@ -10,6 +10,20 @@ defmodule SolrClient do
     "fl" => "cluster_id_ss, issn_ss, fulltext_list_ssf, access_ss",
     "sort" => "id asc"
   }
+
+  @doc """
+  Returns the coverage for a journal given a specific identifier
+
+  ```
+  SolrHoldings.get_coverage("issn", "0036-1399")
+  => [from: {1966, 14, 1}, to: {}, embargo: 0]
+  ```
+  """
+  def get_coverage(identifier, value) do
+    SolrClient.fetch_journal(identifier, value)
+    |> SolrJournal.holdings
+  end
+
   def stack_all_articles(stack_pid) do
     fetch_articles(stack_pid, "*")
   end
