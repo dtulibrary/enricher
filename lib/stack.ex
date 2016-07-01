@@ -25,6 +25,10 @@ defmodule Stack do
     {:reply, top, rest }
   end
 
+  def handle_call({:pop}, _from, []) do
+    {:reply, nil, []}
+  end
+
   def handle_cast({:push, elem}, list) do
     {:noreply, [elem | list]}
   end
