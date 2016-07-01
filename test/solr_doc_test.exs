@@ -21,6 +21,7 @@ defmodule SolrDocTest do
       "source_id_ss" => ["arxiv:oai:arXiv.org:0908.3349"],
       "source_ss" => ["arxiv"],
       "source_type_ss" => ["other"],
+      "issn_ss" =>["16123174"],
       "title_ts" => ["An alternative approach to regularity for the Navier-Stokes equations in critical spaces"],
       "update_timestamp_dt" => "2015-10-22T12:11:51.904Z",
       "~merge_info_sf" => "{\"abstract_ts\":[\"(arxiv,*) / 146834317\"],\"author_sort\":[\"(arxiv,*) / 146834317\"],\"author_ts\":[\"(arxiv,*) / 146834317\"],\"cluster_id_ss\":[\"(arxiv,*) / 146834317\"],\"format\":[\"(arxiv,*) / 146834317\"],\"fulltext_list_ssf\":[\"(arxiv,*) / 146834317\"],\"keywords_ts\":[\"(arxiv,*) / 146834317\"],\"member_id_ss\":[\"(arxiv,*) / 146834317\"],\"pub_date_tis\":[\"(arxiv,*) / 146834317\"],\"pub_date_tsort\":[\"(arxiv,*) / 146834317\"],\"source_ext_ss\":[\"(arxiv,*) / 146834317\"],\"source_id_ss\":[\"(arxiv,*) / 146834317\"],\"source_ss\":[\"(arxiv,*) / 146834317\"],\"source_type_ss\":[\"(arxiv,*) / 146834317\"],\"title_sort\":[\"(arxiv,*) / 146834317\"],\"title_ts\":[\"(arxiv,*) / 146834317\"]}"}
@@ -52,29 +53,10 @@ defmodule SolrDocTest do
       "timestamp"=>"2016-03-22T11:48:30.289Z",
       "score"=>17.687468
     }
-    solr_journal = %{
-       "_version_" => 1529502580976123905,
-       "access_ss" => ["dtupub", "dtu"],
-       "affiliation_associations_json" => "{\"editor\":[],\"supervisor\":[],\"author\":[]}",
-       "alert_timestamp_dt" => "2012-11-09T14:17:55.467Z",
-       "alis_key_ssf" => ["000132324"], "cluster_id_ss" => ["320735441"],
-       "format" => "journal", "fulltext_availability_ss" => ["UNDETERMINED"],
-       "holdings_ssf" => ["{\"tovolume\":\"62\",\"fromyear\":\"1947\",\"fromvolume\":\"42\",\"toyear\":\"1967\",\"alis_key\":\"000132324\",\"type\":\"printed\"}"],
-       "id" => "1392610167", "issn_ss" => ["03702634"],
-       "journal_title_facet" => ["Power and works engineering"],
-       "journal_title_ts" => ["Power and works engineering"],
-       "member_id_ss" => ["409670022", "320735441"], "score" => 17.585644,
-       "source_ext_ss" => ["ds1:ds1_jnl", "ds1:jnl_alis"],
-       "source_id_ss" => ["ds1_jnl:582772", "jnl_alis:000132324"],
-       "source_ss" => ["ds1_jnl", "jnl_alis"], "source_type_ss" => ["other"],
-       "timestamp" => "2016-03-22T11:48:48.353Z",
-       "title_ts" => ["Power and works engineering"],
-       "udc_ss" => ["621.3", "621", "620.4", "(410)", "(05)"],
-       "update_timestamp_dt" => "2014-03-08T19:48:57.715Z"}
     article = SolrDoc.new(solr_article)
     book = SolrDoc.new(solr_book)
-    journal = SolrDoc.new(solr_journal)
-    {:ok, article: article, book: book, journal: journal}
+
+    {:ok, article: article, book: book}
   end
 
   test "constructor", %{article: sd} do
@@ -112,6 +94,11 @@ defmodule SolrDocTest do
   test "to_open_url_query", %{article: sd} do
      q = SolrDoc.to_open_url_query(sd)
      assert String.contains?(q, "rft.au=Kenig%2C+Carlos+E.")
+  end
+
+  test "identifier", %{article: article, book: book} do
+    assert SolrDoc.identifier(article) == {"issn_ss", "16123174"}
+    assert SolrDoc.identifier(book) == {"isbn_ss", "1493930583"}
   end
 
 end

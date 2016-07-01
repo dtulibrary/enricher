@@ -4,7 +4,7 @@ defmodule SolrDoc do
     :author_ts, :title_ts, :journal_title_ts,  :issn_ss,
     :pub_date_tis, :journal_vol_ssf, :journal_page_ssf,
     :doi_ss, :publisher_ts, :publication_place_ts,
-    :cluster_id_ss, :format, :holdings_ssf
+    :cluster_id_ss, :format, :holdings_ssf, :isbn_ss
   ]
   use ExConstructor
 
@@ -38,6 +38,29 @@ defmodule SolrDoc do
       format: :genre
     }
   }
+
+  @identifiers [:issn_ss, :eissn_ss, :isbn_ss]
+
+  @doc """
+  Get the first identifier present in the document
+  and return a tuple with the identifier and the value
+
+  ## Example
+
+  SolrDoc.identifier(%SolrDoc{issn_ss: ["1234-5678"]})
+
+  => {"issn_ss", "1234-5678"}
+  """
+  def identifier(solr_doc) do
+     identifier = data(solr_doc) |> first_identifier
+     value = data(solr_doc) |> Map.get(identifier)
+     {"#{identifier}", value}
+  end
+
+  defp first_identifier(data) do
+    Map.keys(data)
+    |> Enum.find(&(Enum.member?(@identifiers, &1)))
+  end
 
   def data(sd) do
     # take first vals from multivalued fields
