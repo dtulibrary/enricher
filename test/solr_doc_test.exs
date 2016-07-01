@@ -114,24 +114,4 @@ defmodule SolrDocTest do
      assert String.contains?(q, "rft.au=Kenig%2C+Carlos+E.")
   end
 
-  test "journal holdings", %{journal: journal} do
-    details = [from: {"1947", "42", ""}, to: {"1967", "62", ""}, embargo: 0]
-    assert SolrDoc.journal_holdings(journal) == details
-
-    # try with some other values
-    different_holdings = SolrDoc.new(%{"holdings_ssf": [
-      "{\"placement\":\"Rijkswaterstaat communications\",\"fromissue\":\"1\",\"fromyear\":\"1959\",\"toyear\":\"1991\",\"alis_key\":\"000131534\",\"type\":\"printed\",\"toissue\":\"49\"}"
-      ]})
-    assert SolrDoc.journal_holdings(different_holdings) ==  [from: {"1959", "", "1"}, to: {"1991", "", "49"}, embargo: 0]
-
-    ## When there is no holding information
-
-    assert SolrDoc.journal_holdings(SolrDoc.new(%{})) == "NONE"
-
-    ## When there are multiple holdings entries
-
-    multiple = SolrDoc.new(%{holdings_ssf: ["{\"placement\":\"Academia Scientiarum\",\"tovolume\":\"7\",\"fromyear\":\"1975\",\"fromvolume\":\"1\",\"toyear\":\"1982\",\"alis_key\":\"000127127\",\"type\":\"printed\"}", "{\"placement\":\"Academia Scientiarum\",\"fromissue\":\"1\",\"fromyear\":\"1941\",\"toyear\":\"1975\",\"alis_key\":\"000127127\",\"type\":\"printed\",\"toissue\":\"600\"}"]})
-    assert is_list(SolrDoc.journal_holdings(multiple))
-  end
-
 end

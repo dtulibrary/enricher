@@ -14,10 +14,6 @@ defmodule SolrHoldings do
   """
   def get_coverage(identifier, value) do
     SolrClient.fetch_journal(identifier, value)
-    |> SolrDoc.journal_holdings
-  end
-
-  defp parse_coverage(body) do
-    body
+    |> SolrJournal.holdings
   end
 end

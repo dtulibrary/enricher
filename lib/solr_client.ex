@@ -43,7 +43,7 @@ defmodule SolrClient do
     journal_query_string(identifier, value)
     |> @fetcher.get
     |> decode
-    |> cast_to_docs
+    |> cast_to_journals
     |> hd
   end
 
@@ -71,9 +71,16 @@ defmodule SolrClient do
   def cast_to_docs(%{"error" => _msg}), do: nil
 
   def cast_to_docs(solr_response) do
-     docs = solr_response["response"]["docs"]
-     Enum.map(docs, &SolrDoc.new(&1))
+     get_docs(solr_response)
+     |> Enum.map(&SolrDoc.new(&1))
   end
+
+  def cast_to_journals(solr_response) do
+    get_docs(solr_response)
+    |> Enum.map(&SolrJournal.new(&1))
+  end
+
+  defp get_docs(solr_response), do: solr_response["response"]["docs"]
 
   defmodule Fetcher do
     @metastore_solr Application.get_env(:enricher, :metastore_solr)
