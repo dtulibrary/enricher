@@ -1,5 +1,5 @@
 defmodule SolrJournal do
-  defstruct [:issn_ss, :holdings_ssf]
+  defstruct [:issn_ss, :holdings_ssf, :title_ts]
   use ExConstructor
 
   def holdings(%SolrJournal{holdings_ssf: nil}), do: "NONE"
@@ -11,6 +11,28 @@ defmodule SolrJournal do
       to: SolrJournal.Holdings.to(holdings),
       embargo: SolrJournal.Holdings.embargo(holdings)
     ]
+  end
+
+  def holdings_ranges(%SolrJournal{holdings_ssf: holdings}) do
+     Enum.map(holdings, fn(h) ->
+       SolrJournal.Holdings.from_json(h) |> SolrJournal.Holdings.year_range
+     end)
+  end
+
+  @doc "Open access journals contain the string 'open access' in their titles"
+  def open_access?(%SolrJournal{title_ts: titles}) do
+    Enum.any?(titles, fn(x) ->
+      String.downcase(x) |> String.contains?("open access")
+    end)
+  end
+
+  def within_holdings?(journal: journal, article: article) do
+    cond do
+      Enum.any?(holdings_ranges(journal), &Enum.member?(&1, SolrDoc.year(article))) ->
+        true
+      :else -> false
+    end
+
   end
 
   defmodule Holdings do
@@ -43,6 +65,10 @@ defmodule SolrJournal do
         nil -> 0
         x -> x
       end
+    end
+
+    def year_range(hld) do
+      String.to_integer(hld.fromyear)..String.to_integer(hld.toyear)
     end
 
     defp holdings_tuple(data_enum) do

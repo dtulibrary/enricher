@@ -4,7 +4,8 @@ defmodule SolrDoc do
     :author_ts, :title_ts, :journal_title_ts,  :issn_ss,
     :pub_date_tis, :journal_vol_ssf, :journal_page_ssf,
     :doi_ss, :publisher_ts, :publication_place_ts,
-    :cluster_id_ss, :format, :holdings_ssf, :isbn_ss
+    :cluster_id_ss, :format, :holdings_ssf, :isbn_ss,
+    :journal_issue_ssf, :fulltext_list_ssf
   ]
   use ExConstructor
 
@@ -86,4 +87,16 @@ defmodule SolrDoc do
   def field_map(sd) do
     Map.get(@field_mappings, sd.format)
   end
+
+  def year(doc) do
+     doc.pub_date_tis |> hd
+  end
+
+  def fulltext_types(%SolrDoc{fulltext_list_ssf: nil}), do: nil
+  def fulltext_types(%SolrDoc{fulltext_list_ssf: fulltext}) do
+    fulltext |> Enum.map(fn x ->
+      Poison.decode!(x) |> Map.get("type")
+    end)
+  end
+
 end

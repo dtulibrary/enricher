@@ -2,7 +2,7 @@ defmodule SolrJournalTest do
   use ExUnit.Case
 
   setup do
-    journal_fields = %{
+    journal = SolrJournal.new(%{
        "_version_" => 1529502580976123905,
        "access_ss" => ["dtupub", "dtu"],
        "affiliation_associations_json" => "{\"editor\":[],\"supervisor\":[],\"author\":[]}",
@@ -21,8 +21,33 @@ defmodule SolrJournalTest do
        "title_ts" => ["Power and works engineering"],
        "udc_ss" => ["621.3", "621", "620.4", "(410)", "(05)"],
        "update_timestamp_dt" => "2014-03-08T19:48:57.715Z"}
-   journal = SolrJournal.new(journal_fields)
-   {:ok, journal: journal}
+   )
+   oa_journal = SolrJournal.new(%{
+      "access_ss" => [
+        "dtupub",
+        "dtu"
+      ],
+      "alert_timestamp_dt" => "2014-04-30T00:11:16.318Z",
+      "journal_title_ts" => ["Angiology: open access"],
+      "journal_title_facet" => ["Angiology: open access"],
+      "member_id_ss" => ["450146575"],
+      "title_ts" => ["Angiology: Open Access"],
+      "source_ss" => ["ds1_jnl"],
+      "format" => "journal",
+      "update_timestamp_dt" => "2014-04-30T02:52:47.771Z",
+      "issn_ss" => ["23299495"],
+      "fulltext_availability_ss" => ["UNDETERMINED"],
+      "source_id_ss" => ["ds1_jnl:917610"],
+      "cluster_id_ss" => ["450146575"],
+      "source_ext_ss" => ["ds1:ds1_jnl"],
+      "source_type_ss" => ["other"],
+      "affiliation_associations_json" => "{\"editor\":[],\"supervisor\":[],\"author\":[]}",
+      "id" => "1392668485",
+      "_version_" => 1529502585864585200,
+      "timestamp" => "2016-03-22T11:48:53.013Z",
+      "score" => 3.9233332
+    })
+   {:ok, journal: journal, open_access_journal: oa_journal}
   end
 
   test "holdings", %{journal: journal} do
@@ -43,5 +68,36 @@ defmodule SolrJournalTest do
 
     multiple = SolrJournal.new(%{holdings_ssf: ["{\"placement\":\"Academia Scientiarum\",\"tovolume\":\"7\",\"fromyear\":\"1975\",\"fromvolume\":\"1\",\"toyear\":\"1982\",\"alis_key\":\"000127127\",\"type\":\"printed\"}", "{\"placement\":\"Academia Scientiarum\",\"fromissue\":\"1\",\"fromyear\":\"1941\",\"toyear\":\"1975\",\"alis_key\":\"000127127\",\"type\":\"printed\",\"toissue\":\"600\"}"]})
     assert is_list(SolrJournal.holdings(multiple))
+  end
+
+  test "open_access?", %{journal: normal, open_access_journal: oa_journal} do
+    assert false == SolrJournal.open_access?(normal)
+    assert true == SolrJournal.open_access?(oa_journal)
+  end
+
+  test "within_holdings?", %{journal: journal} do
+    before_doc = SolrDoc.new(%{
+     "journal_issue_ssf" => ["1"],
+     "issn_ss" => ["03702634"],
+     "journal_vol_ssf" => ["33"],
+     "pub_date_tis" => [1933]
+   })
+   refute SolrJournal.within_holdings?(journal: journal, article: before_doc)
+   after_doc = SolrDoc.new(%{
+        "journal_issue_ssf" => ["1"],
+        "issn_ss" => ["03702634"],
+        "journal_vol_ssf" => ["33"],
+        "pub_date_tis" => [1956]
+      })
+    assert SolrJournal.within_holdings?(journal: journal, article: after_doc)
+  end
+
+  test "holdings_ranges" do
+    complex_holdings = SolrJournal.new(%{
+      "holdings_ssf" => [
+       "{\"placement\":\"WESCON conference\",\"tovolume\":\"21\",\"fromyear\":\"1977\",\"fromvolume\":\"21\",\"toyear\":\"1977\",\"alis_key\":\"000139306\",\"type\":\"printed\"}",
+       "{\"placement\":\"WESCON conference\",\"tovolume\":\"34\",\"fromyear\":\"1979\",\"fromvolume\":\"23\",\"toyear\":\"1990\",\"alis_key\":\"000139306\",\"type\":\"printed\"}"
+     ]})
+     assert is_list(SolrJournal.holdings_ranges(complex_holdings))
   end
 end

@@ -24,6 +24,11 @@ defmodule SolrClient do
     |> SolrJournal.holdings
   end
 
+  def journal_for_article(article_doc) do
+    {identifier, value} = SolrDoc.identifier(article_doc)
+    SolrClient.fetch_journal(identifier, value)
+  end
+
   def stack_all_articles(stack_pid) do
     fetch_articles(stack_pid, "*")
   end
