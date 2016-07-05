@@ -15,6 +15,12 @@ defmodule Stack do
     GenServer.call(server, {:pop})
   end
 
+  def batch_pop(server, n) do
+    1..n
+    |> Enum.map(fn(x) -> GenServer.call(server, {:pop}) end)
+    |> Enum.reject(&is_nil/1)
+  end
+
   ## Server Callbacks ##
 
   def init(:ok) do
