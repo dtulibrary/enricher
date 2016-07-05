@@ -10,9 +10,16 @@ defmodule AccessDecider do
   `update_stack`
   """
   def process(doc_stack, update_stack) do
-    doc = Stack.pop(doc_stack)
-    access = decide(doc)
-    Stack.push(update_stack, {doc.id, access})
+    case Stack.pop(doc_stack) do
+      nil ->
+        Logger.debug "AccessDecider: No more docs on stack, exiting..."
+        {:ok}
+      %SolrDoc{} = doc ->
+        Logger.debug "AccessDecider processing..."
+        access = decide(doc)
+        Stack.push(update_stack, {doc.id, access})
+        process(doc_stack, update_stack)
+    end
   end
 
   @doc """
@@ -49,6 +56,7 @@ defmodule AccessDecider do
   def sfx_fulltext(doc) do
     journal = SolrClient.journal_for_article(doc)
     cond do
+      is_nil(journal) -> []
       SolrJournal.open_access?(journal) -> @open_access
       SolrJournal.within_holdings?(journal: journal, article: doc) -> @dtu_only
       true -> []
@@ -60,14 +68,14 @@ defmodule AccessDecider do
   the information in the Solr document.
   """
   def metastore_fulltext(solr_doc) do
-    access_types = SolrDoc.fulltext_types(solr_doc)
+    fulltext_types = SolrDoc.fulltext_types(solr_doc)
     cond do
-      is_nil(access_types) -> nil
-      Enum.member?(access_types, "openaccess") ->  @open_access
-      Enum.member?(access_types, "research") -> @open_access
-      Enum.member?(access_types, "publisher") -> @dtu_only
+      is_nil(fulltext_types) -> nil
+      Enum.member?(fulltext_types, "openaccess") ->  @open_access
+      Enum.member?(fulltext_types, "research") -> @open_access
+      Enum.member?(fulltext_types, "publisher") -> @dtu_only
       true ->
-        Logger.error "Unknown access type - doing nothing"
+        Logger.error "AccessDecider: Unknown fulltext type [#{Enum.join(fulltext_types, ", ")}] - doing nothing"
         nil
     end
   end

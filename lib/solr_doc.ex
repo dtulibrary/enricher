@@ -40,7 +40,7 @@ defmodule SolrDoc do
     }
   }
 
-  @identifiers [:issn_ss, :eissn_ss, :isbn_ss]
+  @identifiers [:issn_ss, :eissn_ss]
 
   @doc """
   Get the first identifier present in the document
@@ -53,8 +53,8 @@ defmodule SolrDoc do
   => {"issn_ss", "1234-5678"}
   """
   def identifier(solr_doc) do
-     identifier = data(solr_doc) |> first_identifier
-     value = data(solr_doc) |> Map.get(identifier)
+     identifier = solr_doc |> data |> first_identifier
+     value =  solr_doc |> data |> Map.get(identifier)
      {"#{identifier}", value}
   end
 

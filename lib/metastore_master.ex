@@ -1,11 +1,6 @@
 defmodule MetastoreMaster do
   def add_articles_to_stack(stack_pid) do
-    # Make query
-    # Start job to process queue
 
-    ## {:ok, worker} = EnrichWorker.start_link
-
-    # Populate queue
     SolrClient.stack_all_articles(stack_pid)
   end
 

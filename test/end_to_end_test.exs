@@ -8,5 +8,6 @@ defmodule EndToEndTest do
     AccessDecider.process(input_stack, update_stack)
     assert {id, access} = Stack.pop(update_stack)
     refute is_nil(id)
+    assert is_list(access)
   end
 end

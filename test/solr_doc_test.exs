@@ -98,7 +98,6 @@ defmodule SolrDocTest do
 
   test "identifier", %{article: article, book: book} do
     assert SolrDoc.identifier(article) == {"issn_ss", "16123174"}
-    assert SolrDoc.identifier(book) == {"isbn_ss", "1493930583"}
   end
 
 end

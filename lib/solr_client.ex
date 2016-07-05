@@ -5,9 +5,9 @@ defmodule SolrClient do
   @fetcher Application.get_env(:enricher, :solr_fetcher, SolrClient.Fetcher)
   @journal_defaults %{"q" => "*:*", "fq" => "format:journal", "wt" => "json"}
   @article_query_params %{
-    "q" => "format:article",
+    "q" => "format:article OR format:book",
     "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, fulltext_list_ssf, access_ss",
+    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
     "sort" => "id asc"
   }
 
@@ -34,8 +34,8 @@ defmodule SolrClient do
   end
 
   # cursor will be nil when there are no more articles to receive
-  def fetch_articles(_, nil) do
-    Logger.debug "nil cursor received - exiting"
+  def fetch_articles(_stackpid, nil) do
+    Logger.debug "SolrClient: nil cursor received - exiting"
     :ok
   end
 
@@ -58,13 +58,18 @@ defmodule SolrClient do
     end
   end
 
+  def fetch_journal(_identifier, nil), do: nil
+
   def fetch_journal(identifier, value) do
     journal_query_string(identifier, value)
     |> @fetcher.get
     |> decode
     |> cast_to_journals
-    |> hd
+    |> first
   end
+
+  def first([]), do: nil
+  def first([head|tail]), do: head
 
   def article_query_string do
     @article_query_params
@@ -83,8 +88,7 @@ defmodule SolrClient do
   end
 
   def decode(body) do
-    {:ok, decoded} = Poison.decode(body)
-    decoded
+    Poison.decode!(body)
   end
 
   def cast_to_docs(%{"error" => _msg}), do: nil
@@ -106,7 +110,7 @@ defmodule SolrClient do
 
     def get(query_string) do
       url = @metastore_solr <> "?" <> query_string
-      Logger.debug "fetching #{url}"
+      Logger.debug "SolrClient.Fetcher: fetching #{url}"
       %HTTPoison.Response{body: body} = HTTPoison.get!(url)
       body
     end
@@ -125,11 +129,13 @@ defmodule SolrClient do
     # Little bit messy, but we use this method
     # to simulate different Solr responses for different queries
     def get(query_string) do
-      Logger.debug query_string
       cond do
         String.contains?(query_string, "AoEkMTAwNQ") -> @empty_articles_response
         String.contains?(query_string, "format%3Aarticle") -> @all_articles_response
         String.contains?(query_string, "issn") -> @journal_response
+        true ->
+          Logger.error "Unknown query string #{query_string}"
+          "{}"
       end
     end
 
