@@ -1,12 +1,18 @@
 defmodule AccessDecider do
+  require Logger
+
   @dtu_only ["dtu"]
   @open_access ["dtupub", "dtu"]
 
-  def run(stack) do
-    # 1. get doc from stack
-    solr_doc = Stack.pop(stack)
-    # 2. get holdings info for doc
-    # 3. make access decision
+  @doc """
+  Take docs from `doc_stack`, determine their
+  online access status and add this data to the
+  `update_stack`
+  """
+  def process(doc_stack, update_stack) do
+    doc = Stack.pop(doc_stack)
+    access = decide(doc)
+    Stack.push(update_stack, {doc.id, access})
   end
 
   @doc """
@@ -45,7 +51,7 @@ defmodule AccessDecider do
     cond do
       SolrJournal.open_access?(journal) -> @open_access
       SolrJournal.within_holdings?(journal: journal, article: doc) -> @dtu_only
-      :else -> []
+      true -> []
     end
   end
 
@@ -60,6 +66,9 @@ defmodule AccessDecider do
       Enum.member?(access_types, "openaccess") ->  @open_access
       Enum.member?(access_types, "research") -> @open_access
       Enum.member?(access_types, "publisher") -> @dtu_only
+      true ->
+        Logger.error "Unknown access type - doing nothing"
+        nil
     end
   end
 end

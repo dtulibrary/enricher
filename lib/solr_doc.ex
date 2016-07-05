@@ -5,7 +5,7 @@ defmodule SolrDoc do
     :pub_date_tis, :journal_vol_ssf, :journal_page_ssf,
     :doi_ss, :publisher_ts, :publication_place_ts,
     :cluster_id_ss, :format, :holdings_ssf, :isbn_ss,
-    :journal_issue_ssf, :fulltext_list_ssf
+    :journal_issue_ssf, :fulltext_list_ssf, :id
   ]
   use ExConstructor
 

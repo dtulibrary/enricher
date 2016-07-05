@@ -90,14 +90,14 @@ defmodule SolrJournalTest do
         "pub_date_tis" => [1956]
       })
     assert SolrJournal.within_holdings?(journal: journal, article: after_doc)
-  end
 
-  test "holdings_ranges" do
     complex_holdings = SolrJournal.new(%{
       "holdings_ssf" => [
        "{\"placement\":\"WESCON conference\",\"tovolume\":\"21\",\"fromyear\":\"1977\",\"fromvolume\":\"21\",\"toyear\":\"1977\",\"alis_key\":\"000139306\",\"type\":\"printed\"}",
        "{\"placement\":\"WESCON conference\",\"tovolume\":\"34\",\"fromyear\":\"1979\",\"fromvolume\":\"23\",\"toyear\":\"1990\",\"alis_key\":\"000139306\",\"type\":\"printed\"}"
      ]})
-     assert is_list(SolrJournal.holdings_ranges(complex_holdings))
+    middle = SolrDoc.new(%{"pub_date_tis" => [1978]})
+    refute SolrJournal.within_holdings?(journal: complex_holdings, article: middle)
   end
+
 end
