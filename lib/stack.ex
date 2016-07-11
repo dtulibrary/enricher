@@ -3,8 +3,8 @@ defmodule Stack do
 
   ## Client API ##
 
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok, [])
+  def start_link(state \\ [], opts \\ []) do
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
   def push(server, elem) do

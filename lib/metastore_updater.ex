@@ -2,15 +2,18 @@ defmodule MetastoreUpdater do
   require Logger
   @update_url Application.get_env(:enricher, :metastore_update, "http://localhost:8983/solr/update")
 
-  def run(update_stack) do
-    updates = Stack.batch_pop(update_stack, 50)
+  def run(update_queue) do
+    updates = Queue.batch(update_queue, 50)
     case updates do
-      [] -> # list is empty - no more updates
+      [] -> # no docs yet, wait a while
+        Logger.debug "No docs on update queue, sleeping"
+        :timer.sleep(1000)
+      :halt -> # shutdown signal - no more updates
         commit_updates
-        {:ok}
+        {:shutdown}
       updates ->
         update_docs(updates)
-        run(update_stack) # call recursively until no more updates
+        run(update_queue) # call recursively until no more updates
     end
   end
 

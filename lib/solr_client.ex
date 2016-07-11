@@ -29,23 +29,29 @@ defmodule SolrClient do
     SolrClient.fetch_journal(identifier, value)
   end
 
-  def stack_all_articles(stack_pid) do
-    fetch_articles(stack_pid, "*")
+  def stack_all_articles(queue_pid) do
+    fetch_articles(queue_pid, "*")
   end
 
   # cursor will be nil when there are no more articles to receive
-  def fetch_articles(_stackpid, nil) do
-    Logger.debug "SolrClient: nil cursor received - exiting"
-    :ok
+  def fetch_articles(queue_pid, nil) do
+    Logger.debug "SolrClient: nil cursor received - sending shutdown signal and exiting"
+    Queue.enqueue(queue_pid, :halt)
+    {:shutdown}
   end
 
-  def fetch_articles(stack_pid, cursor_mark) do
+  def fetch_articles(queue_pid, cursor_mark) do
     decoded = article_query_string(cursor_mark) |> @fetcher.get |> decode
-    # Transform the documents to Structs and add to the Stack
-    cast_to_docs(decoded) |> Enum.each(&Stack.push(stack_pid, &1))
-    # Get the next cursor and fetch more articles
-    next_cursor = parse_cursor(decoded, cursor_mark)
-    fetch_articles(stack_pid, next_cursor)
+    # Transform the documents to Structs and add to the Queue 
+    if decoded == nil do
+      Logger.error "Shutting down SolrClient"
+      {:exit}
+    else
+      cast_to_docs(decoded) |> Enum.each(&Queue.enqueue(queue_pid, &1))
+      # Get the next cursor and fetch more articles
+      next_cursor = parse_cursor(decoded, cursor_mark)
+      fetch_articles(queue_pid, next_cursor)
+    end
   end
 
   # nil when cursor is absent or is the same as current cursor
@@ -87,6 +93,8 @@ defmodule SolrClient do
     |> URI.encode_query
   end
 
+  def decode(:error), do: nil
+
   def decode(body) do
     Poison.decode!(body)
   end
@@ -111,8 +119,12 @@ defmodule SolrClient do
     def get(query_string) do
       url = @metastore_solr <> "?" <> query_string
       Logger.debug "SolrClient.Fetcher: fetching #{url}"
-      %HTTPoison.Response{body: body} = HTTPoison.get!(url)
-      body
+      case HTTPoison.get(url) do
+         {:ok, %HTTPoison.Response{body: body}} -> body
+         {:error, %HTTPoison.Error{reason: reason}} ->
+           Logger.error "Error querying #{reason}"
+           :error
+      end
     end
   end
 

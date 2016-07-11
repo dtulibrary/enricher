@@ -5,20 +5,25 @@ defmodule AccessDecider do
   @open_access ["dtupub", "dtu"]
 
   @doc """
-  Take docs from `doc_stack`, determine their
+  Take docs from `doc_queue`, determine their
   online access status and add this data to the
-  `update_stack`
+  `update_queue`
   """
-  def process(doc_stack, update_stack) do
-    case Stack.pop(doc_stack) do
+  def process(doc_queue, update_queue) do
+    case Queue.dequeue(doc_queue) do
+      :halt ->
+	Logger.debug "AccessDecider: shutdown signal received, passing it on and exiting..."
+        Queue.enqueue(update_queue, :halt)
+	:shutdown
       nil ->
-        Logger.debug "AccessDecider: No more docs on stack, exiting..."
-        {:ok}
+        Logger.debug "AccessDecider: No docs on stack, sleeping..."
+	:timer.sleep(3000)
+	process(doc_queue, update_queue)
       %SolrDoc{} = doc ->
         Logger.debug "AccessDecider processing..."
         access = decide(doc)
-        Stack.push(update_stack, {doc.id, access})
-        process(doc_stack, update_stack)
+        Queue.enqueue(update_queue, {doc.id, access})
+        process(doc_queue, update_queue)
     end
   end
 
