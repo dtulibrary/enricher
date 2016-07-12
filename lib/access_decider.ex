@@ -12,15 +12,15 @@ defmodule AccessDecider do
   def process(doc_queue, update_queue) do
     case Queue.dequeue(doc_queue) do
       :halt ->
-	Logger.debug "AccessDecider: shutdown signal received, passing it on and exiting..."
+	Logger.debug "shutdown signal received, passing it on and exiting..."
         Queue.enqueue(update_queue, :halt)
-	:shutdown
+        {:shutdown}
       nil ->
-        Logger.debug "AccessDecider: No docs on stack, sleeping..."
-	:timer.sleep(3000)
+        Logger.debug "No docs on stack, sleeping..."
+	:timer.sleep(1000)
 	process(doc_queue, update_queue)
       %SolrDoc{} = doc ->
-        Logger.debug "AccessDecider processing..."
+        Logger.debug "Processing..."
         access = decide(doc)
         Queue.enqueue(update_queue, {doc.id, access})
         process(doc_queue, update_queue)
