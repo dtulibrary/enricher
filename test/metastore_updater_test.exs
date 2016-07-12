@@ -5,10 +5,10 @@ defmodule MetastoreUpdaterTest do
   @update2 {"1938", ["dtu"]}
 
   test "run" do
-    {:ok, stack} = Stack.start_link
-    Stack.push(stack, @update1)
-    Stack.push(stack, @update2)
-    MetastoreUpdater.run(stack)
+    {:ok, queue} = Queue.start_link
+    Queue.enqueue(queue, @update1)
+    Queue.enqueue(queue, @update2)
+    MetastoreUpdater.run(queue)
   end
 
   test "create_updates" do

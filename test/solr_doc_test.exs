@@ -71,29 +71,12 @@ defmodule SolrDocTest do
     assert data.author_ts == "Kenig, Carlos E."
   end
 
-  test "open_url_map", %{article: sd_article, book: sd_book} do
-    article_map = SolrDoc.open_url_map(sd_article)
-    assert article_map.atitle == "An alternative approach to regularity for the Navier-Stokes equations in critical spaces"
-    assert article_map.au == "Kenig, Carlos E."
-    assert article_map.genre == "article"
-
-    book_map = SolrDoc.open_url_map(sd_book)
-    assert book_map.btitle == "Integrative human biochemistry"
-    assert book_map.au == "Castanho, Miguel A. R. B."
-    assert book_map.pub == "Springer"
-  end
-
   test "field_map" do
     article = SolrDoc.new(%{"format" => "article"})
     assert Map.get(SolrDoc.field_map(article), :title_ts) == :atitle
 
     book = SolrDoc.new(%{"format" => "book"})
     assert Map.get(SolrDoc.field_map(book), :title_ts) == :btitle
-  end
-
-  test "to_open_url_query", %{article: sd} do
-     q = SolrDoc.to_open_url_query(sd)
-     assert String.contains?(q, "rft.au=Kenig%2C+Carlos+E.")
   end
 
   test "identifier", %{article: article, book: book} do

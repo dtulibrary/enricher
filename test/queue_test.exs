@@ -19,6 +19,7 @@ defmodule QueueTest do
     assert 50 == Enum.count(new_batch)
     refute Enum.member?(new_batch, nil)
   end
+
   test "batch with halt" do
     {:ok, pid} = Queue.start_link([], name: :test_queue)
     1..20 |> Enum.each(&Queue.enqueue(:test_queue, &1))

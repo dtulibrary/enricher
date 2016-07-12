@@ -74,15 +74,6 @@ defmodule SolrDoc do
     |> Enum.into(Map.new, &transform.(&1))
   end
 
-  @doc "Convert keys to keys for OpenUrl module"
-  def open_url_map(sd) do
-    Map.new(data(sd), fn {x,y} -> { Map.get(field_map(sd), x), y } end)
-  end
-
-  def to_open_url_query(sd) do
-    open_url_map(sd) |> OpenUrl.new |> OpenUrl.to_uri
-  end
-
   @doc "Returns the correct field mapping for the given document's format"
   def field_map(sd) do
     Map.get(@field_mappings, sd.format)
