@@ -8,7 +8,8 @@ defmodule SolrClient do
     "q" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
-    "sort" => "id asc"
+    "sort" => "id asc",
+    "rows" => 10000
   }
 
   @doc """
@@ -35,7 +36,7 @@ defmodule SolrClient do
 
   # cursor will be nil when there are no more articles to receive
   def fetch_articles(queue_pid, nil) do
-    Logger.debug "SolrClient: nil cursor received - sending shutdown signal and exiting"
+    Logger.debug "nil cursor received - queuing halt signal and exiting"
     Queue.enqueue(queue_pid, :halt)
     {:shutdown}
   end
@@ -45,7 +46,8 @@ defmodule SolrClient do
     # Transform the documents to Structs and add to the Queue 
     if decoded == nil do
       Logger.error "Shutting down SolrClient"
-      {:exit}
+      Queue.enqueue(queue_pid, :halt)
+      {:shutdown}
     else
       cast_to_docs(decoded) |> Enum.each(&Queue.enqueue(queue_pid, &1))
       # Get the next cursor and fetch more articles
@@ -118,11 +120,11 @@ defmodule SolrClient do
 
     def get(query_string) do
       url = @metastore_solr <> "?" <> query_string
-      Logger.debug "SolrClient.Fetcher: fetching #{url}"
+      Logger.debug "Fetching #{url}"
       case HTTPoison.get(url) do
          {:ok, %HTTPoison.Response{body: body}} -> body
          {:error, %HTTPoison.Error{reason: reason}} ->
-           Logger.error "Error querying #{reason}"
+           Logger.error "Error querying #{url} - #{reason}"
            :error
       end
     end
