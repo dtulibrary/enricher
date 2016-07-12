@@ -8,10 +8,14 @@ defmodule MetastoreUpdater do
       [] -> # no docs yet, wait a while
         Logger.debug "No docs on update queue, sleeping"
         :timer.sleep(1000)
-      :halt -> # shutdown signal - no more updates
+        run(update_queue) 
+      [:halt] -> # shutdown signal - no more updates
+        Logger.info "Shutdown signal received - committing updates and shutting application down"
         commit_updates
+        :init.stop()
         {:shutdown}
       updates ->
+        Logger.debug "Updating docs"
         update_docs(updates)
         run(update_queue) # call recursively until no more updates
     end
@@ -29,16 +33,13 @@ defmodule MetastoreUpdater do
 
   def handle_response(%HTTPoison.Response{status_code: 400, body: body}) do
     msg = body |> Poison.decode! |> Map.get("error") |> Map.get("msg")
-    Logger.error "MetastoreUpdater: Error updating: #{msg}"
+    Logger.error "Error updating: #{msg}"
   end
 
-  def handle_response(%HTTPoison.Response{}) do
-    Logger.debug "MetastoreUpdater: Documents updated"
-    {:ok}
-  end
+  def handle_response(%HTTPoison.Response{}), do: {:ok}
 
   def commit_updates do
-    Logger.info "MetastoreUpdater: Committing updates"
+    Logger.info "Committing updates"
     @update_url <> "?commit=true" |> HTTPoison.get!
   end
 
