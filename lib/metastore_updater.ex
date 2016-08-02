@@ -47,10 +47,11 @@ defmodule MetastoreUpdater do
     Enum.map(elems, &create_update/1)
   end
 
-  def create_update({doc_id, availability}) do
+  def create_update(%MetastoreUpdate{id: doc_id, fulltext_access: access, fulltext_info: info}) do
     %{
       "id" => doc_id,
-      "fulltext_availability_ss" => %{"set" => availability}
+      "fulltext_availability_ss" => %{"set" => access},
+      "fulltext_info_ss" => %{"set" => info}
     }
   end
 end

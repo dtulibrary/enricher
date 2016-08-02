@@ -39,16 +39,16 @@ defmodule AccessDeciderTest do
     {:ok, open_access: oa_doc, book: book_doc}
   end
 
-  test "decider - open access article", %{open_access: oa_doc} do
-    assert ["dtupub", "dtu"] == AccessDecider.decide(oa_doc)
+  test "create_updater - open access article", %{open_access: oa_doc} do
+    decision = AccessDecider.create_update(oa_doc)
+    assert ["dtupub", "dtu"] == decision.fulltext_access
+    assert "metastore" == decision.fulltext_info
   end
 
-  test "decider - book", %{book: book} do
-    assert ["dtu"] == AccessDecider.decide(book)
-  end
-
-  test "open access fulltext",  %{open_access: oa_doc} do
-    assert ["dtupub", "dtu"] == AccessDecider.metastore_fulltext(oa_doc)
+  test "create_updater - book", %{book: book} do
+    decision = AccessDecider.create_update(book)
+    assert ["dtu"] == decision.fulltext_access
+    assert "sfx" == decision.fulltext_info
   end
 
   test "pure fulltext" do
@@ -58,9 +58,13 @@ defmodule AccessDeciderTest do
         "{\"source\":\"rdb_vbn\",\"local\":false,\"type\":\"research\",\"url\":\"http://vbn.aau.dk/ws/files/228080680/PnP_iMG_DC_TCST_final.pdf\"}"
       ]
       })
-    assert ["dtupub", "dtu"] == AccessDecider.metastore_fulltext(pure_doc_with_fulltext)
+    decision = AccessDecider.create_update(pure_doc_with_fulltext)
+    assert ["dtupub", "dtu"] == decision.fulltext_access
+    assert "metastore" == decision.fulltext_info
 
     pure_doc_no_fulltext = SolrDoc.new(%{"source_type_ss" => ["research"]})
-    assert nil == AccessDecider.metastore_fulltext(pure_doc_no_fulltext)
+    decision = AccessDecider.create_update(pure_doc_no_fulltext)
+    assert [] == decision.fulltext_access
+    assert "none" == decision.fulltext_info
   end
 end

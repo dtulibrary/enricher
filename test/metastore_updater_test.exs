@@ -1,8 +1,8 @@
 defmodule MetastoreUpdaterTest do
   use ExUnit.Case
 
-  @update1 {"1937", ["dtu", "dtupub"]}
-  @update2 {"1938", ["dtu"]}
+  @update1 MetastoreUpdate.new(%{id: "1937", fulltext_access: ["dtu", "dtupub"], fulltext_info: "metastore"})
+  @update2 MetastoreUpdate.new(%{id: "1938", fulltext_access: ["dtu"], fulltext_info: "sfx"})
 
   test "run" do
     {:ok, queue} = Queue.start_link
@@ -20,7 +20,8 @@ defmodule MetastoreUpdaterTest do
      update = MetastoreUpdater.create_update(@update1)
      assert update == %{
        "id" => "1937",
-       "fulltext_availability_ss" => %{"set" => ["dtu", "dtupub"]}
+       "fulltext_availability_ss" => %{"set" => ["dtu", "dtupub"]},
+       "fulltext_info_ss" => %{"set" => "metastore"}
      }
   end
 end
