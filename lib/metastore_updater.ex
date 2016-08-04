@@ -1,6 +1,6 @@
 defmodule MetastoreUpdater do
   require Logger
-  @update_url Application.get_env(:enricher, :metastore_update, "http://localhost:8983/solr/update")
+  @update_url Application.get_env(:enricher, :metastore_update)
 
   def run(update_queue) do
     updates = Queue.batch(update_queue, 50)

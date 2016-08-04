@@ -79,7 +79,7 @@ defmodule SolrDocTest do
     assert Map.get(SolrDoc.field_map(book), :title_ts) == :btitle
   end
 
-  test "identifier", %{article: article, book: book} do
+  test "identifier", %{article: article} do
     assert SolrDoc.identifier(article) == {"issn_ss", "16123174"}
   end
 
