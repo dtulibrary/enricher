@@ -11,3 +11,4 @@ RUN mix local.hex --force
 RUN mkdir /app
 WORKDIR /app
 ADD . /app
+RUN mix deps.get
