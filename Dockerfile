@@ -8,6 +8,7 @@ RUN apt-get update
 RUN apt-get install -y esl-erlang
 RUN apt-get install -y elixir
 RUN mix local.hex --force
+RUN mix local.rebar --force
 RUN mkdir /app
 WORKDIR /app
 ADD . /app
