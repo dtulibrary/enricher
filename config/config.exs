@@ -20,18 +20,25 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-
-config :enricher, sfx_metadata_api: HoldingsMetadataApi
-config :enricher, holdings_fetcher: HoldingsApi.Fetcher
-config :enricher, sfx_file_location: "tmp/institutional_holding.xml"
+# We need this value to be set at compile time
+# Note that this means that Enricher needs to be compiled
+# specifically for each environment...
+solr_url = System.get_env("SOLR_URL") 
+if is_nil(solr_url) || String.length(solr_url) == 0 do 
+  exit("Cannot compile - SOLR_URL not defined") 
+end
+config :enricher, metastore_solr: "#{solr_url}/solr/metastore/toshokan"
+config :enricher, metastore_update: "#{solr_url}/solr/metastore/update"
 
 config :logger, :console,
   format: "$time $level $metadata $levelpad$message\n",
-  metadata: [:module, :line]
+  metadata: [:module, :line],
+  level: :info
+config :quantum, timezone: :local
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
-#
+
 import_config "#{Mix.env}.exs"

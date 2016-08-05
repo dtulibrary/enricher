@@ -49,8 +49,8 @@ defmodule AccessDecider do
     ])
   end
 
-  @doc "If none of the checks return results"
-  defp check_fulltext_availability(doc, []), do: [fulltext_access: [], fulltext_info: "none"]
+  # If none of the checks return results
+  defp check_fulltext_availability(_doc, []), do: [fulltext_access: [], fulltext_info: "none"]
 
   # run through all check functions returning the value of the first successful check
   defp check_fulltext_availability(doc, [check_function | remaining_functions]) do

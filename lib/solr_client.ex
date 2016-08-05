@@ -11,6 +11,15 @@ defmodule SolrClient do
     "sort" => "id asc",
     "rows" => 10000
   }
+  @partial_query_params %{
+    "q" => "fulltext_availability_ss:UNDETERMINED OR fulltext_info_ss:sfx",
+    "fq" => "format:article OR format:book",
+    "wt" => "json",
+    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
+    "sort" => "id asc",
+    "rows" => 10000
+
+  }
 
   @doc """
   Returns the coverage for a journal given a specific identifier
@@ -36,7 +45,7 @@ defmodule SolrClient do
 
   # cursor will be nil when there are no more articles to receive
   def fetch_articles(queue_pid, nil) do
-    Logger.debug "nil cursor received - queuing halt signal and exiting"
+    Logger.info "nil cursor received - queuing halt signal and exiting"
     Queue.enqueue(queue_pid, :halt)
     {:shutdown}
   end
@@ -77,8 +86,13 @@ defmodule SolrClient do
   end
 
   def first([]), do: nil
-  def first([head|tail]), do: head
+  def first([head|_tail]), do: head
 
+  def partial_query_string do
+    @partial_query_params
+    |> URI.encode_query
+  end
+  
   def article_query_string do
     @article_query_params
     |> URI.encode_query

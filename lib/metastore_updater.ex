@@ -3,7 +3,7 @@ defmodule MetastoreUpdater do
   @update_url Application.get_env(:enricher, :metastore_update)
 
   def run(update_queue) do
-    updates = Queue.batch(update_queue, 50)
+    updates = Queue.batch(update_queue, 150)
     case updates do
       [] -> # no docs yet, wait a while
         Logger.debug "No docs on update queue, sleeping"
@@ -15,7 +15,7 @@ defmodule MetastoreUpdater do
         :init.stop()
         {:shutdown}
       updates ->
-        Logger.debug "Updating docs"
+        Logger.info "Updating docs"
         update_docs(updates)
         run(update_queue) # call recursively until no more updates
     end
@@ -28,6 +28,7 @@ defmodule MetastoreUpdater do
   def send_updates(updates) when is_list(updates) do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
+    Logger.info @update_url
     HTTPoison.post!(@update_url, body, headers) |> handle_response
   end
 

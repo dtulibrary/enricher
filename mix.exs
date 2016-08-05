@@ -19,7 +19,8 @@ defmodule Enricher.Mixfile do
       applications: [
         :logger,
         :httpoison,
-        :exconstructor
+        :exconstructor,
+        :quantum
       ]
     ]
   end
@@ -39,6 +40,7 @@ defmodule Enricher.Mixfile do
       {:poison, "~> 2.1"},
       {:exconstructor, "~> 1.0.2"},
       {:sweet_xml, "~> 0.6.1"},
+      {:quantum, ">= 1.7.1"}
     ]
   end
 end

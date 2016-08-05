@@ -14,7 +14,7 @@ defmodule Queue do
 
   def batch(server, n) do
     batch = 1..n
-    |> Enum.map(fn(x) -> GenServer.call(server, :dequeue) end)
+    |> Enum.map(fn(_) -> GenServer.call(server, :dequeue) end)
     |> Enum.reject(&is_nil/1)
     # We will not return a batch with both :halt and updates
     # Only updates or [:halt]
