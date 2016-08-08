@@ -28,6 +28,7 @@ defmodule SolrJournal do
 
   def within_holdings?(journal: journal, article: article) do
     cond do
+      holdings(journal) == "NONE" -> false
       Enum.any?(holdings_ranges(journal), &Enum.member?(&1, SolrDoc.year(article))) ->
         true
       :else -> false

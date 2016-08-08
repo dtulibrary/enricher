@@ -18,8 +18,10 @@ defmodule Enricher do
     # Set up Solr fetch cron jobs
 
     Logger.info "Starting up harvesters with schedule #{@full_run_schedule}"
-    full_run = %Quantum.Job{schedule: @full_run_schedule, task: fn -> MetastoreMaster.add_articles_to_stack(:doc_queue) end}
+    full_run = %Quantum.Job{schedule: @full_run_schedule, task: fn -> SolrClient.full_update(:doc_queue) end}
     Quantum.add_job(:full, full_run)
+    partial_run = %Quantum.Job{schedule: @update_schedule, task: fn -> SolrClient.partial_update(:doc_queue) end}
+    Quantum.add_job(:partial, partial_run)
     # Run tasks
     opts = [strategy: :one_for_one]
     Logger.info "Starting up queues and processors"

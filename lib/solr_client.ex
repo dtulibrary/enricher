@@ -4,7 +4,7 @@ defmodule SolrClient do
 
   @fetcher Application.get_env(:enricher, :solr_fetcher, SolrClient.Fetcher)
   @journal_defaults %{"q" => "*:*", "fq" => "format:journal", "wt" => "json"}
-  @article_query_params %{
+  @full_query_params %{
     "q" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
@@ -39,34 +39,43 @@ defmodule SolrClient do
     SolrClient.fetch_journal(identifier, value)
   end
 
-  def stack_all_articles(queue_pid) do
-    fetch_articles(queue_pid, "*")
+  def full_update(queue_pid) do
+    fetch_documents(queue_pid, @full_query_params, "*")
+  end
+
+  def partial_update(queue_pid) do
+    fetch_documents(queue_pid, @partial_query_params, "*")
+  end 
+
+  def make_query_string(default_params, cursor_mark) do
+    Map.merge(default_params, %{"cursorMark" => cursor_mark})
+    |> URI.encode_query
   end
 
   # cursor will be nil when there are no more articles to receive
-  def fetch_articles(queue_pid, nil) do
-    Logger.info "nil cursor received - queuing halt signal and exiting"
-    Queue.enqueue(queue_pid, :halt)
+  def fetch_documents(_queue_pid, _query_defaults, nil) do
+    Logger.info "nil cursor received - exiting"
     {:shutdown}
   end
 
-  def fetch_articles(queue_pid, cursor_mark) do
-    decoded = article_query_string(cursor_mark) |> @fetcher.get |> decode
+  def fetch_documents(queue_pid, query_defaults, cursor_mark) do
+    query_string =  make_query_string(query_defaults, cursor_mark)
+    decoded = query_string |> @fetcher.get |> decode
     # Transform the documents to Structs and add to the Queue 
     if decoded == nil do
       Logger.error "Shutting down SolrClient"
-      Queue.enqueue(queue_pid, :halt)
       {:shutdown}
     else
       cast_to_docs(decoded) |> Enum.each(&Queue.enqueue(queue_pid, &1))
       # Get the next cursor and fetch more articles
       next_cursor = parse_cursor(decoded, cursor_mark)
-      fetch_articles(queue_pid, next_cursor)
+      fetch_documents(queue_pid, query_defaults, next_cursor)
     end
   end
 
   # nil when cursor is absent or is the same as current cursor
   # i.e. there are no more results
+  # Otherwise, the cursor for the next result set
   defp parse_cursor(response, current_cursor) do
     case Map.get(response, "nextCursorMark") do
       nil -> nil
@@ -87,21 +96,6 @@ defmodule SolrClient do
 
   def first([]), do: nil
   def first([head|_tail]), do: head
-
-  def partial_query_string do
-    @partial_query_params
-    |> URI.encode_query
-  end
-  
-  def article_query_string do
-    @article_query_params
-    |> URI.encode_query
-  end
-
-  def article_query_string(cursor_mark) do
-    Map.merge(@article_query_params, %{"cursorMark" => cursor_mark})
-    |> URI.encode_query
-  end
 
   def journal_query_string(identifier, value) do
     @journal_defaults

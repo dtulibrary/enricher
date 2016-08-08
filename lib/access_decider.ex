@@ -74,6 +74,7 @@ defmodule AccessDecider do
     journal = SolrClient.journal_for_article(doc)
     cond do
       is_nil(journal) -> nil
+      SolrJournal.holdings(journal) == "NONE" -> nil
       SolrJournal.open_access?(journal) ->
         [fulltext_access: @open_access, fulltext_info: "sfx"]  
       SolrJournal.within_holdings?(journal: journal, article: doc) ->
