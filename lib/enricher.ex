@@ -6,25 +6,17 @@ defmodule Enricher do
   @full_run_schedule Application.get_env(:enricher, :full_run_schedule, "@yearly")
   @update_schedule Application.get_env(:enricher, :update_schedule, "@yearly")
 
+  alias Experimental.GenStage
+  use GenStage
+
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    children = [
-      worker(Queue, [[], [name: :doc_queue]], id: :doc_queue),
-      worker(Queue, [[], [name: :update_queue]], id: :update_queue),
-      worker(Task, [fn -> AccessDecider.process(:doc_queue, :update_queue) end], id: :decide, restart: :transient),
-      worker(Task, [fn -> MetastoreUpdater.run(:update_queue) end], id: :update, restart: :transient)
-    ]
-    # Set up Solr fetch cron jobs
-
-    Logger.info "Starting up harvesters with schedule #{@full_run_schedule}"
-    full_run = %Quantum.Job{schedule: @full_run_schedule, task: fn -> SolrClient.full_update(:doc_queue) end}
-    Quantum.add_job(:full, full_run)
-    partial_run = %Quantum.Job{schedule: @update_schedule, task: fn -> SolrClient.partial_update(:doc_queue) end}
-    Quantum.add_job(:partial, partial_run)
-    # Run tasks
-    opts = [strategy: :one_for_one]
-    Logger.info "Starting up queues and processors"
-    {:ok, _pid} = Supervisor.start_link(children, opts)
+    {:ok, decider} = GenStage.start_link(DeciderStage, :ok)
+    {:ok, harvest} = GenStage.start_link(HarvestStage, :full)
+    {:ok, update} = GenStage.start_link(UpdateStage, :ok)
+    GenStage.sync_subscribe(update, to: decider)
+    GenStage.sync_subscribe(decider, to: harvest)
+    {:ok, self}
   end
 end

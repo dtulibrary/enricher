@@ -39,38 +39,29 @@ defmodule SolrClient do
     SolrClient.fetch_journal(identifier, value)
   end
 
-  def full_update(queue_pid) do
-    fetch_documents(queue_pid, @full_query_params, "*")
+  def full_update(number, cursor) do
+    fetch_docs(@full_query_params, number, cursor) 
   end
 
-  def partial_update(queue_pid) do
-    fetch_documents(queue_pid, @partial_query_params, "*")
+  def partial_update(number, cursor) do
+    fetch_docs(@partial_query_params, number, cursor) 
   end 
 
+  def make_query_string(default_params, rows, cursor_mark) do
+    Map.merge(default_params, %{"cursorMark" => cursor_mark, "rows" => rows})
+    |> URI.encode_query
+  end
   def make_query_string(default_params, cursor_mark) do
     Map.merge(default_params, %{"cursorMark" => cursor_mark})
     |> URI.encode_query
   end
 
-  # cursor will be nil when there are no more articles to receive
-  def fetch_documents(_queue_pid, _query_defaults, nil) do
-    Logger.info "nil cursor received - exiting"
-    {:shutdown}
-  end
-
-  def fetch_documents(queue_pid, query_defaults, cursor_mark) do
-    query_string =  make_query_string(query_defaults, cursor_mark)
-    decoded = query_string |> @fetcher.get |> decode
-    # Transform the documents to Structs and add to the Queue 
-    if decoded == nil do
-      Logger.error "Shutting down SolrClient"
-      {:shutdown}
-    else
-      cast_to_docs(decoded) |> Enum.each(&Queue.enqueue(queue_pid, &1))
-      # Get the next cursor and fetch more articles
-      next_cursor = parse_cursor(decoded, cursor_mark)
-      fetch_documents(queue_pid, query_defaults, next_cursor)
-    end
+  def fetch_docs(query_defaults, rows, cursor_mark) do
+    query_string =  make_query_string(query_defaults, rows, cursor_mark)
+    decoded = query_string |> @fetcher.get |> decode |> cast_to_docs
+    docs = cast_to_docs(decoded) 
+    next_cursor = parse_cursor(decoded, cursor_mark)
+    {docs, next_cursor}
   end
 
   # nil when cursor is absent or is the same as current cursor
@@ -120,7 +111,12 @@ defmodule SolrClient do
     get_docs(solr_response)
     |> Enum.map(&SolrJournal.new(&1))
   end
-
+  
+  # This will intercept Solr server side errors
+  defp get_docs(%{"error" => %{"code" => code, "msg" => msg}, "responseHeader" => %{"params" => params}}) do
+    Logger.error "Solr error #{code}: #{msg}. Params: #{inspect params}"
+    []
+  end
   defp get_docs(solr_response), do: solr_response["response"]["docs"]
 
   defmodule Fetcher do

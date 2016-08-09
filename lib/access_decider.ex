@@ -71,6 +71,7 @@ defmodule AccessDecider do
   (held in Metastore)
   """
   def sfx_fulltext(doc) do
+    :timer.sleep(50) # Don't hit Solr too hard
     journal = SolrClient.journal_for_article(doc)
     cond do
       is_nil(journal) -> nil

@@ -39,9 +39,10 @@ defmodule MetastoreUpdater do
 
   def handle_response(%HTTPoison.Response{}), do: {:ok}
 
+  @doc "Commit updates to Solr asynchronously"
   def commit_updates do
     Logger.info "Committing updates"
-    @update_url <> "?commit=true" |> HTTPoison.get!
+    @update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
   end
 
   def create_updates(elems) when is_list(elems) do

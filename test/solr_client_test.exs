@@ -22,4 +22,14 @@ defmodule SolrClientTest do
     details = [from: {"1947", "42", ""}, to: {"1967", "62", ""}, embargo: 0]
     assert SolrClient.get_coverage("issn", "03702634") == details
   end
+
+  test "cast_to_journals" do
+    # when response has no docs
+    response = Poison.decode! "{\"responseHeader\":{\"status\":0,\"QTime\":7,\"params\":{\"q\":\"issn_ss:05793009\",\"wt\":\"json\",\"fq\":\"format:journal\"}},\"response\":{\"numFound\":0,\"start\":0,\"maxScore\":0.0,\"docs\":[]},\"facet_counts\":{\"facet_queries\":{},\"facet_fields\":{},\"facet_dates\":{},\"facet_ranges\":{},\"facet_intervals\":{}}}\n"
+    assert [] == SolrClient.cast_to_journals(response)
+
+    # when there is an error response
+    solr_error = %{"error" => %{"code" => 503, "msg" => "no servers hosting shard: "}, "responseHeader" => %{"QTime" => 5, "params" => %{"fq" => "format:journal", "q" => "issn_ss:14697629", "wt" => "json"}, "status" => 503}}
+    assert [] == SolrClient.cast_to_journals(solr_error)
+  end
 end
