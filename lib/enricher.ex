@@ -8,15 +8,18 @@ defmodule Enricher do
 
   alias Experimental.GenStage
   use GenStage
+  require Logger
 
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
+    start_harvest(:full)
+    {:ok, self}
+  end
 
+  def start_harvest(mode) do
     {:ok, decider} = GenStage.start_link(DeciderStage, :ok)
-    {:ok, harvest} = GenStage.start_link(HarvestStage, :full)
+    {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
     {:ok, update} = GenStage.start_link(UpdateStage, :ok)
     GenStage.sync_subscribe(update, to: decider)
     GenStage.sync_subscribe(decider, to: harvest)
-    {:ok, self}
   end
 end

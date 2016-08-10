@@ -13,24 +13,27 @@ defmodule HarvestStage do
   use GenStage
   @init_cursor "*"
   @doc "mode can be :full or :partial"
-  def init(mode) do
+  def init(mode, subscribers \\ []) do
     Logger.info "Commencing full harvest"
-    {:producer, {mode, @init_cursor}}
+    {:producer, {mode, @init_cursor, subscribers}}
   end
 
-  def handle_demand(demand, {:full, cursor}) when demand > 0 do
-    Logger.info "Receiving demand #{demand} with cursor #{cursor} "
-    {docs, new_cursor} = SolrClient.full_update(demand, cursor)
-    # TODO - we should be handling the end of the result set here
-    Logger.info "new cursor is #{new_cursor}"
-    {:noreply, docs, {:full, new_cursor}}
+  def handle_demand(demand, state) when demand > 0 do
+    process(demand, &SolrClient.full_update/2, state)
   end
   
-  def handle_demand(demand, {:partial, cursor}) when demand > 0 do
-    Logger.info "Receiving demand #{demand} with cursor #{cursor} "
-    {docs, new_cursor} = SolrClient.partial_update(demand, cursor)
-    # TODO - we should be handling the end of the result set here
-    Logger.info "new cursor is #{new_cursor}"
-    {:noreply, docs, {:partial, new_cursor}}
+  def handle_demand(demand, state) when demand > 0 do
+    process(demand, &SolrClient.partial_update/2, state)
   end
+
+  def process(demand, harvest_function, {mode, cursor, subscribers}) do
+    Logger.debug "Processing #{mode}.."
+    {docs, new_cursor} = harvest_function.(demand, cursor)
+    Logger.debug "new cursor is #{new_cursor}"
+    if is_nil(new_cursor) do
+      Logger.info "No more docs, messaging subscribers"
+      GenStage.async_notify(self(), :nomoredocs)
+    end
+    {:noreply, docs, {mode, new_cursor, subscribers}}
+  end 
 end

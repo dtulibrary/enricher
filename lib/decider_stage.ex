@@ -14,4 +14,11 @@ defmodule DeciderStage do
     updates = Enum.map(events, &AccessDecider.create_update(&1))
     {:noreply, updates, state}
   end
+
+  def handle_info({{producer, _sub}, :nomoredocs}, _state) do
+    Logger.info "Received message nomoredocs"
+    GenStage.async_notify(self(), :nomoredocs)
+    GenStage.stop(producer, :nomoredocs)
+    {:noreply, [], :ok}
+  end
 end

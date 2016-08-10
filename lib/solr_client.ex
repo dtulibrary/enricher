@@ -58,7 +58,7 @@ defmodule SolrClient do
 
   def fetch_docs(query_defaults, rows, cursor_mark) do
     query_string =  make_query_string(query_defaults, rows, cursor_mark)
-    decoded = query_string |> @fetcher.get |> decode |> cast_to_docs
+    decoded = query_string |> @fetcher.get |> decode 
     docs = cast_to_docs(decoded) 
     next_cursor = parse_cursor(decoded, cursor_mark)
     {docs, next_cursor}
@@ -113,11 +113,12 @@ defmodule SolrClient do
   end
   
   # This will intercept Solr server side errors
-  defp get_docs(%{"error" => %{"code" => code, "msg" => msg}, "responseHeader" => %{"params" => params}}) do
+  def get_docs(%{"error" => %{"code" => code, "msg" => msg}, "responseHeader" => %{"params" => params}}) do
     Logger.error "Solr error #{code}: #{msg}. Params: #{inspect params}"
     []
   end
-  defp get_docs(solr_response), do: solr_response["response"]["docs"]
+
+  def get_docs(solr_response), do: solr_response["response"]["docs"]
 
   defmodule Fetcher do
     @metastore_solr Application.get_env(:enricher, :metastore_solr)
