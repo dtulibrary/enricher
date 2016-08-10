@@ -11,11 +11,17 @@ defmodule Enricher do
   require Logger
 
   def start(_type, _args) do
-    start_harvest(:full)
+    Logger.info "Initialising Enricher"
+    full_run = %Quantum.Job{schedule: @full_run_schedule, task: fn -> start_harvest(:full) end}
+    partial_run = %Quantum.Job{schedule: @update_schedule, task: fn -> start_harvest(:partial) end}
+    Logger.info "Scheduling harvest jobs"
+    Quantum.add_job(:full, full_run)
+    Quantum.add_job(:partial, full_run)
     {:ok, self}
   end
 
   def start_harvest(mode) do
+    Logger.info "Starting #{mode} harvest..."
     {:ok, decider} = GenStage.start_link(DeciderStage, :ok)
     {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
     {:ok, update} = GenStage.start_link(UpdateStage, :ok)
