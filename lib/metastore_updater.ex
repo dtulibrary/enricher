@@ -1,6 +1,6 @@
 defmodule MetastoreUpdater do
   require Logger
-  @update_url "#{Config.get(:enricher, :solr_url)}/metastore/update"
+  @update_url "#{Config.get(:enricher, :solr_url)}/solr/metastore/update"
 
   def update_docs(updates) do
     updates |> create_updates |> send_updates

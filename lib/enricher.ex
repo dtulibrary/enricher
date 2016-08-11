@@ -16,7 +16,7 @@ defmodule Enricher do
     partial_run = %Quantum.Job{schedule: @update_schedule, task: fn -> start_harvest(:partial) end}
     Logger.info "Scheduling harvest jobs"
     Quantum.add_job(:full, full_run)
-    Quantum.add_job(:partial, full_run)
+    Quantum.add_job(:partial, partial_run)
     {:ok, self}
   end
 
