@@ -4,28 +4,6 @@ defmodule AccessDecider do
   @dtu_only ["dtu"]
   @open_access ["dtupub", "dtu"]
 
-  @doc """
-  Take docs from `doc_queue`, determine their
-  online access status and add this data to the
-  `update_queue`
-  """
-  def process(doc_queue, update_queue) do
-    case Queue.dequeue(doc_queue) do
-      :halt ->
-	Logger.debug "shutdown signal received, passing it on and exiting..."
-        Queue.enqueue(update_queue, :halt)
-        {:shutdown}
-      nil ->
-        Logger.debug "No docs on stack, sleeping..."
-	:timer.sleep(1000)
-	process(doc_queue, update_queue)
-      %SolrDoc{} = doc ->
-        Logger.debug "Processing..."
-        Queue.enqueue(update_queue, create_update(doc))
-        process(doc_queue, update_queue)
-    end
-  end
-
   def create_update(solr_doc) do
     decide(solr_doc)
     |> Enum.into(%{})

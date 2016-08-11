@@ -2,25 +2,6 @@ defmodule MetastoreUpdater do
   require Logger
   @update_url Application.get_env(:enricher, :metastore_update)
 
-  def run(update_queue) do
-    updates = Queue.batch(update_queue, 150)
-    case updates do
-      [] -> # no docs yet, wait a while
-        Logger.debug "No docs on update queue, sleeping"
-        :timer.sleep(1000)
-        run(update_queue) 
-      [:halt] -> # shutdown signal - no more updates
-        Logger.info "Shutdown signal received - committing updates and shutting application down"
-        commit_updates
-        :init.stop()
-        {:shutdown}
-      updates ->
-        Logger.info "Updating docs"
-        update_docs(updates)
-        run(update_queue) # call recursively until no more updates
-    end
-  end
-
   def update_docs(updates) do
     updates |> create_updates |> send_updates
   end

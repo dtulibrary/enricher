@@ -4,13 +4,6 @@ defmodule MetastoreUpdaterTest do
   @update1 MetastoreUpdate.new(%{id: "1937", fulltext_access: ["dtu", "dtupub"], fulltext_info: "metastore"})
   @update2 MetastoreUpdate.new(%{id: "1938", fulltext_access: ["dtu"], fulltext_info: "sfx"})
 
-  test "run" do
-    {:ok, queue} = Queue.start_link
-    Queue.enqueue(queue, @update1)
-    Queue.enqueue(queue, @update2)
-    MetastoreUpdater.run(queue)
-  end
-
   test "create_updates" do
     updates = MetastoreUpdater.create_updates([@update1, @update2])
     assert is_list(updates)
