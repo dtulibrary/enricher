@@ -25,4 +25,21 @@ mix deps.get
 
 ## Usage
 
-To run the application, run the command `mix run --no-halt` from the application root. It will shut itself down when all documents have been processed.
+To run the application, you will first need to set the url of the Solr that Enricher should query and update: `export SOLR_URL=http://localhost:8983`. The application will add `/solr/metastore/toshokan` or `/solr/metastore/update` to this url as appropriate. In dev mode it may be appropriate to run `iex -S mix` to launch a console. You can then trigger the update jobs manually using `Enricher.start_harvest(:full | :partial)`. A full run will update all relevant documents in the system while a partial run will only update documents coming from SFX and documents where `fulltext_availability_ss` is of type `UNDETERMINED`. In production mode, Enricher will schedule these jobs using the CRON scheduled defined in `config/prod.exs`. 
+
+## System Architecture
+
+The application uses the Elixir GenStage pattern. There are three stages, `HarvestStage`, `DeciderStage` and `UpdateStage`, each of which calls client code before handing its results to the next stage. Read the Elixir GenStage docs for more information about the pattern and the API.
+
+## Concurrency
+
+Of the three stages, only `HarvestStage` cannot be run concurrently. This is because it pages through a result set using a cursor. This cursor is maintained within the stage's state. In principle, there could be multiple instances of `DeciderStage` and `UpdateStage` running concurrently, to do this you would simply add multiple instances in the `Enricher.start_harvest\1` method, ensuring that all the `DeciderStage` instances subscribe to the same `HarvestStage`. However, the major bottleneck in the system is Solr. All stages use Solr in some way and increasing the level of concurrency will increase the level of Solr requests potentially leading to errors.
+
+## Improvements
+
+The application is not perfect, here are a number of potential areas for improvement:
+
+  -  We should use ETS (Erlang Term Storage) for temporary storage of journal data to prevent duplicate Solr requests in the `DeciderStage`.
+  -  `AccessDecider` could also check the open access DOI resolver for access information.
+  -  We need to experiment more with concurrency to determine the maximum request level.
+  -  GenStage Flow might be a more suitable design pattern.
