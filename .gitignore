@@ -6,3 +6,4 @@ erl_crash.dump
 tmp/
 *.swp
 /log
+/rel/enricher

@@ -121,7 +121,7 @@ defmodule SolrClient do
   def get_docs(solr_response), do: solr_response["response"]["docs"]
 
   defmodule Fetcher do
-    @metastore_solr Application.get_env(:enricher, :metastore_solr)
+    @metastore_solr "#{Config.get(:enricher, :solr_url)}/metastore/toshokan"
 
     def get(query_string) do
       url = @metastore_solr <> "?" <> query_string

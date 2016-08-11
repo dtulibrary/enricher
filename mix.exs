@@ -21,7 +21,8 @@ defmodule Enricher.Mixfile do
         :httpoison,
         :exconstructor,
         :quantum,
-        :gen_stage
+        :gen_stage,
+        :logger_file_backend
       ]
     ]
   end
@@ -43,7 +44,8 @@ defmodule Enricher.Mixfile do
       {:sweet_xml, "~> 0.6.1"},
       {:quantum, ">= 1.7.1"},
       {:logger_file_backend, "0.0.8"},
-      {:gen_stage, "~> 0.4.3"}
+      {:gen_stage, "~> 0.4.3"},
+      {:distillery, "~> 0.9"}
     ]
   end
 end

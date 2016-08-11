@@ -43,3 +43,7 @@ The application is not perfect, here are a number of potential areas for improve
   -  `AccessDecider` could also check the open access DOI resolver for access information.
   -  We need to experiment more with concurrency to determine the maximum request level.
   -  GenStage Flow might be a more suitable design pattern.
+
+## Build
+
+Enricher uses Distillery as a build tool. To build a release, run `mix release --env=prod`. I am still in the process in working out the best practice for release management, so more precise instructions will follow.

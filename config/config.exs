@@ -1,7 +1,6 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
-
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
@@ -20,15 +19,7 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-# We need this value to be set at compile time
-# Note that this means that Enricher needs to be compiled
-# specifically for each environment...
-solr_url = System.get_env("SOLR_URL") 
-if is_nil(solr_url) || String.length(solr_url) == 0 do 
-  exit("Cannot compile - SOLR_URL not defined") 
-end
-config :enricher, metastore_solr: "#{solr_url}/solr/metastore/toshokan"
-config :enricher, metastore_update: "#{solr_url}/solr/metastore/update"
+config :enricher, solr_url: {:system, "SOLR_URL"}
 
 config :logger, :console,
   format: "$time $level $metadata $levelpad$message\n",
