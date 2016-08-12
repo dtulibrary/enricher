@@ -83,4 +83,10 @@ defmodule SolrDocTest do
     assert SolrDoc.identifier(article) == {"issn_ss", "16123174"}
   end
 
+  test "year" do
+    with_year = %SolrDoc{author_ts: nil, cluster_id_ss: ["2"], doi_ss: nil, format: "article", fulltext_list_ssf: ["{\"source\":\"cell\",\"local\":true,\"type\":\"publisher\",\"url\":\"http://production.datastore.cvt.dk/filestore?oid=56d7441cddbb323376032b30&targetid=56d7441cddbb323376032b32\"}"], holdings_ssf: nil, id: "1", isbn_ss: nil, issn_ss: ["10974172", "00928674"], journal_issue_ssf: nil, journal_page_ssf: nil, journal_title_ts: nil, journal_vol_ssf: nil, pub_date_tis: [2018], publication_place_ts: nil, publisher_ts: nil, title_ts: nil}
+    no_year = %SolrDoc{author_ts: nil, cluster_id_ss: ["2"], doi_ss: nil, format: "article", fulltext_list_ssf: ["{\"source\":\"cell\",\"local\":true,\"type\":\"publisher\",\"url\":\"http://production.datastore.cvt.dk/filestore?oid=56d7441cddbb323376032b30&targetid=56d7441cddbb323376032b32\"}"], holdings_ssf: nil, id: "1", isbn_ss: nil, issn_ss: ["10974172", "00928674"], journal_issue_ssf: nil, journal_page_ssf: nil, journal_title_ts: nil, journal_vol_ssf: nil, pub_date_tis: nil, publication_place_ts: nil, publisher_ts: nil, title_ts: nil}
+   assert 2018 == SolrDoc.year(with_year)
+   assert nil == SolrDoc.year(no_year)
+  end
 end

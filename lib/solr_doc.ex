@@ -79,9 +79,8 @@ defmodule SolrDoc do
     Map.get(@field_mappings, sd.format)
   end
 
-  def year(doc) do
-     doc.pub_date_tis |> hd
-  end
+  def year(%SolrDoc{pub_date_tis: [pub_date|_]}), do: pub_date
+  def year(%SolrDoc{pub_date_tis: nil}), do: nil
 
   def fulltext_types(%SolrDoc{fulltext_list_ssf: nil}), do: nil
   def fulltext_types(%SolrDoc{fulltext_list_ssf: fulltext}) do

@@ -75,7 +75,7 @@ defmodule SolrJournalTest do
     missing_toyear = SolrJournal.Holdings.from_json([
       "{\"placement\":\"Rijkswaterstaat communications\",\"fromissue\":\"1\",\"fromyear\":\"1959\",\"alis_key\":\"000131534\",\"type\":\"printed\",\"toissue\":\"49\"}"
       ])
-    assert missing_toyear.toyear == 2016
+    assert missing_toyear.toyear == "2016"
   end
 
   test "open_access?", %{journal: normal, open_access_journal: oa_journal} do
@@ -106,6 +106,13 @@ defmodule SolrJournalTest do
      ]})
     middle = SolrDoc.new(%{"pub_date_tis" => [1978]})
     refute SolrJournal.within_holdings?(journal: complex_holdings, article: middle)
+
+    missing_toyear = %SolrJournal{holdings_ssf: ["{\"source\":\"jnl_sfx\",\"fromyear\":\"1997\",\"type\":\"electronic\"}"],
+ issn_ss: ["15325016", "15325008"],
+ title_ts: ["Electric power components and systems",
+  "ELECTR POWER COMPON SYST"]}
+    within = SolrDoc.new(issn_ss: [15325016], pub_date_tis: [1998])
+    assert SolrJournal.within_holdings?(journal: missing_toyear, article: within)
   end
 
 end
