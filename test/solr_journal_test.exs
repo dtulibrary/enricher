@@ -70,6 +70,14 @@ defmodule SolrJournalTest do
     assert is_list(SolrJournal.holdings(multiple))
   end
 
+  test "holdings default" do
+    # If toyear is missing, it should default to the current year
+    missing_toyear = SolrJournal.Holdings.from_json([
+      "{\"placement\":\"Rijkswaterstaat communications\",\"fromissue\":\"1\",\"fromyear\":\"1959\",\"alis_key\":\"000131534\",\"type\":\"printed\",\"toissue\":\"49\"}"
+      ])
+    assert missing_toyear.toyear == 2016
+  end
+
   test "open_access?", %{journal: normal, open_access_journal: oa_journal} do
     assert false == SolrJournal.open_access?(normal)
     assert true == SolrJournal.open_access?(oa_journal)

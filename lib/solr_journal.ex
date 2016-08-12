@@ -37,7 +37,7 @@ defmodule SolrJournal do
   end
 
   defmodule Holdings do
-    defstruct [:fromyear, :fromvolume, :fromissue, :toyear, :tovolume, :toissue, :embargo]
+    defstruct [:fromyear, :fromvolume, :fromissue, :tovolume, :toissue, :embargo, toyear: DateTime.utc_now.year]
     use ExConstructor
 
     def from_json([head|_]) do
