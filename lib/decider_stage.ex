@@ -4,15 +4,15 @@ defmodule DeciderStage do
   require Logger
 
   def init(:ok) do
-    Logger.info "Commencing Decider Stage"
-    {:producer_consumer, :nostate}
+    Logger.info "Commencing Decider Stage - setting up ETS cache"
+    {:ok, fetcher_pid} = GenServer.start_link(JournalFetcher, :journals)
+    {:producer_consumer, fetcher_pid}
   end
 
-  def handle_events(events, _from, state) do
+  def handle_events(events, _from, fetcher) do
     :timer.sleep(1000)
-    Logger.debug "receiving #{Enum.count(events)} events with state #{state}"
-    updates = Enum.map(events, &AccessDecider.create_update(&1))
-    {:noreply, updates, state}
+    updates = Enum.map(events, &AccessDecider.create_update(&1, fetcher))
+    {:noreply, updates, fetcher}
   end
 
   def handle_info({{producer, _sub}, :nomoredocs}, _state) do

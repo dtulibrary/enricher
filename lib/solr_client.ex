@@ -34,9 +34,9 @@ defmodule SolrClient do
     |> SolrJournal.holdings
   end
 
-  def journal_for_article(article_doc) do
+  def journal_for_article(article_doc, fetcher) do
     {identifier, value} = SolrDoc.identifier(article_doc)
-    SolrClient.fetch_journal(identifier, value)
+    JournalFetcher.fetch(fetcher, {identifier, value})
   end
 
   def full_update(number, cursor) do
@@ -126,7 +126,7 @@ defmodule SolrClient do
     def get(query_string) do
       url = @metastore_solr <> "?" <> query_string
       Logger.debug "Fetching #{url}"
-      case HTTPoison.get(url) do
+      case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 20000) do
          {:ok, %HTTPoison.Response{body: body}} -> body
          {:error, %HTTPoison.Error{reason: reason}} ->
            Logger.error "Error querying #{url} - #{reason}"

@@ -4,8 +4,8 @@ defmodule AccessDecider do
   @dtu_only ["dtu"]
   @open_access ["dtupub", "dtu"]
 
-  def create_update(solr_doc) do
-    decide(solr_doc)
+  def create_update(solr_doc, fetcher) do
+    decide(solr_doc, fetcher)
     |> Enum.into(%{})
     |> Map.merge(%{id: solr_doc.id})
     |> MetastoreUpdate.new
@@ -19,26 +19,26 @@ defmodule AccessDecider do
   for this information, either sfx or metastore, e.g.
   [fulltext_access: ["dtu"], fulltext_info: "sfx"]
   """
-  def decide(solr_doc) do
-    check_fulltext_availability(solr_doc, [
-        &is_book/1,
-        &metastore_fulltext/1,
-        &sfx_fulltext/1,
+  def decide(solr_doc, fetcher) do
+    check_fulltext_availability(solr_doc, fetcher, [
+        &is_book/2,
+        &metastore_fulltext/2,
+        &sfx_fulltext/2,
     ])
   end
 
   # If none of the checks return results
-  defp check_fulltext_availability(_doc, []), do: [fulltext_access: [], fulltext_info: "none"]
+  defp check_fulltext_availability(_doc, _pid, []), do: [fulltext_access: [], fulltext_info: "none"]
 
   # run through all check functions returning the value of the first successful check
-  defp check_fulltext_availability(doc, [check_function | remaining_functions]) do
-    case check_function.(doc) do
-      nil -> check_fulltext_availability(doc, remaining_functions)
+  defp check_fulltext_availability(doc, fetcher, [check_function | remaining_functions]) do
+    case check_function.(doc, fetcher) do
+      nil -> check_fulltext_availability(doc, fetcher, remaining_functions)
       x when is_list(x) -> x
     end
   end
 
-  def is_book(solr_doc) do
+  def is_book(solr_doc, _fetcher) do
     if solr_doc.format == "book" do 
       [fulltext_access: @dtu_only, fulltext_info: "sfx"]
     end
@@ -48,9 +48,9 @@ defmodule AccessDecider do
   Check for fulltext based on the SFX journal information
   (held in Metastore)
   """
-  def sfx_fulltext(doc) do
+  def sfx_fulltext(doc, fetcher) do
     :timer.sleep(50) # Don't hit Solr too hard
-    journal = SolrClient.journal_for_article(doc)
+    journal = SolrClient.journal_for_article(doc, fetcher)
     cond do
       is_nil(journal) -> nil
       SolrJournal.holdings(journal) == "NONE" -> nil
@@ -66,7 +66,7 @@ defmodule AccessDecider do
   Check if there is fulltext access based on
   the information in the Solr document.
   """
-  def metastore_fulltext(solr_doc) do
+  def metastore_fulltext(solr_doc, _fetcher) do
     fulltext_types = SolrDoc.fulltext_types(solr_doc)
     cond do
       is_nil(fulltext_types) -> nil
