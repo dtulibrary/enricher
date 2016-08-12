@@ -27,7 +27,7 @@ mix deps.get
 
 To run the application, you will first need to set the url of the Solr that Enricher should query and update: `export SOLR_URL=http://localhost:8983`. The application will add `/solr/metastore/toshokan` or `/solr/metastore/update` to this url as appropriate. In dev mode it may be appropriate to run `iex -S mix` to launch a console. You can then trigger the update jobs manually using `Enricher.start_harvest(:full | :partial)`. A full run will update all relevant documents in the system while a partial run will only update documents coming from SFX and documents where `fulltext_availability_ss` is of type `UNDETERMINED`. In production mode, Enricher will schedule these jobs using the CRON scheduled defined in `config/prod.exs`. 
 
-## System Architecture
+## System Design
 
 The application uses the Elixir GenStage pattern. There are three stages, `HarvestStage`, `DeciderStage` and `UpdateStage`, each of which calls client code before handing its results to the next stage. Read the Elixir GenStage docs for more information about the pattern and the API.
 
@@ -39,11 +39,13 @@ Of the three stages, only `HarvestStage` cannot be run concurrently. This is bec
 
 The application is not perfect, here are a number of potential areas for improvement:
 
+  -  Use HTTP KeepAlive for all Solr requests to improve query performance.
   -  We should use ETS (Erlang Term Storage) for temporary storage of journal data to prevent duplicate Solr requests in the `DeciderStage`.
   -  `AccessDecider` could also check the open access DOI resolver for access information.
   -  We need to experiment more with concurrency to determine the maximum request level.
+  -  At present, we use GenStage defaults (between 500 and 1000) for determining Solr query size and we commit updates after each batch. It may be appropriate to configure a larger batch size.
   -  GenStage Flow might be a more suitable design pattern.
 
 ## Build
 
-Enricher uses Distillery as a build tool. To build a release, run `mix release --env=prod`. I am still in the process in working out the best practice for release management, so more precise instructions will follow.
+Enricher uses Distillery as a build tool. To build a release, run `MIX_ENV=prod mix release --env=prod`. I am still in the process in working out the best practice for release management, so more precise instructions will follow.
