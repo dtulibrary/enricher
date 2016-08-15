@@ -7,7 +7,7 @@ defmodule JournalFetcher do
   for next time
   """
   def fetch(pid, {key, value}) do
-    GenServer.call(pid, {:fetch, key, value})
+    GenServer.call(pid, {:fetch, key, value}, 20000)
   end
 
   def insert(pid, {key, value, doc}) do
@@ -37,9 +37,7 @@ defmodule JournalFetcher do
 
   defp fetch_ets(name, key, value) do
     case :ets.lookup(name, "#{key}:#{value}") do
-      [{_id, doc}|_] -> 
-        Logger.debug "hit cache for #{key}:#{value}"
-        doc
+      [{_id, doc}|_] -> doc
       [] -> nil
     end
   end

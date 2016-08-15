@@ -3,9 +3,8 @@ defmodule DeciderStage do
   use GenStage
   require Logger
 
-  def init(:ok) do
-    Logger.info "Commencing Decider Stage - setting up ETS cache"
-    {:ok, fetcher_pid} = GenServer.start_link(JournalFetcher, :journals)
+  def init(fetcher_pid) do
+    Logger.info "Commencing Decider Stage"
     {:producer_consumer, fetcher_pid}
   end
 

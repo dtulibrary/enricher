@@ -23,6 +23,7 @@ defmodule HarvestStage do
   end
   
   def handle_demand(demand, state) when demand > 0 do
+    Logger.debug "Receiving demand #{demand}"
     process(demand, &SolrClient.partial_update/2, state)
   end
 
