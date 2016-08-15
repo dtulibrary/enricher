@@ -113,6 +113,15 @@ defmodule SolrJournalTest do
   "ELECTR POWER COMPON SYST"]}
     within = SolrDoc.new(issn_ss: [15325016], pub_date_tis: [1998])
     assert SolrJournal.within_holdings?(journal: missing_toyear, article: within)
+
+  end
+  describe "year_range" do
+    # Sometimes fromyear is missing - this is caused by a user error when entering data in SFX
+    test "replaces missing fromyear with toyear" do
+      missing_fromyear = %SolrJournal{holdings_ssf: ["{\"tovolume\":\"96\",\"source\":\"jnl_sfx\",\"toyear\":\"2008\",\"type\":\"electronic\",\"toissue\":\"4\"}"], issn_ss: ["00168092"], title_ts: ["Georgetown Law Journal", "GEORGETOWN LAW J"]}
+      holdings = missing_fromyear.holdings_ssf |> SolrJournal.Holdings.from_json
+      assert 2008..2008 == SolrJournal.Holdings.year_range(holdings)
+    end
   end
 
 end

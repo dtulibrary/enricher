@@ -69,7 +69,12 @@ defmodule SolrJournal do
     end
 
     def year_range(hld) do
-      String.to_integer(hld.fromyear)..String.to_integer(hld.toyear)
+      # Correct for possible errors in from years
+      fromyear = case hld.fromyear do
+        nil -> hld.toyear
+        number -> number
+      end
+      String.to_integer(fromyear)..String.to_integer(hld.toyear)
     end
 
     defp holdings_tuple(data_enum) do
