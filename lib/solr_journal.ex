@@ -13,6 +13,24 @@ defmodule SolrJournal do
     ]
   end
 
+  def valid?(%SolrJournal{holdings_ssf: nil}), do: false
+
+  def valid?(%SolrJournal{holdings_ssf: holdings}) do 
+    Enum.all?(holdings, fn(h) ->
+      SolrJournal.Holdings.from_json(h) |> Map.get(:fromyear) |> Kernel.is_binary
+    end)
+  end
+
+  def invalid_message(journal) do
+    unless valid?(journal) do
+      message = "INVALID: #{title(journal)} - #{issn(journal)} - "
+      case journal.holdings_ssf do
+        nil -> message <> "No holdings data"
+        _ -> message <> "No from year"
+      end  
+    end  
+  end
+
   def holdings_ranges(%SolrJournal{holdings_ssf: holdings}) do
      Enum.map(holdings, fn(h) ->
        SolrJournal.Holdings.from_json(h) |> SolrJournal.Holdings.year_range
@@ -33,8 +51,15 @@ defmodule SolrJournal do
         true
       :else -> false
     end
-
   end
+
+  def title(%SolrJournal{title_ts: nil}), do: ""
+  def title(%SolrJournal{title_ts: []}), do: ""
+  def title(%SolrJournal{title_ts: [t|_]}), do: t
+
+  def issn(%SolrJournal{issn_ss: nil}), do: ""
+  def issn(%SolrJournal{issn_ss: []}), do: ""
+  def issn(%SolrJournal{issn_ss: [t|_]}), do: t
 
   defmodule Holdings do
     defstruct [:fromyear, :fromvolume, :fromissue, :tovolume, :toissue, :embargo, toyear: "#{DateTime.utc_now.year}"]

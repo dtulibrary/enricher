@@ -20,6 +20,13 @@ defmodule SolrClient do
     "rows" => 10000
 
   }
+  @all_journals_params %{
+    "q" => "format:journal",
+    "fq" => "source_ss:jnl_sfx",
+    "wt" => "json",
+    "sort" => "id asc",
+    "rows" => 100000 # really there's only approx 7,000
+  }
 
   @doc """
   Returns the coverage for a journal given a specific identifier
@@ -62,6 +69,15 @@ defmodule SolrClient do
     docs = cast_to_docs(decoded) 
     next_cursor = parse_cursor(decoded, cursor_mark)
     {docs, next_cursor}
+  end
+
+  def all_journals(rows) do
+    @all_journals_params 
+    |> Map.merge(%{"rows" => rows})
+    |> URI.encode_query 
+    |> @fetcher.get 
+    |> decode
+    |> cast_to_journals
   end
 
   # nil when cursor is absent or is the same as current cursor

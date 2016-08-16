@@ -124,4 +124,17 @@ defmodule SolrJournalTest do
     end
   end
 
+  describe "valid?" do
+    test "without holdings should be false" do
+      no_holdings = %SolrJournal{title_ts: ["No Holdings"]}
+      refute SolrJournal.valid?(no_holdings)
+    end
+    test "without a from year should be false" do
+      missing_fromyear = %SolrJournal{holdings_ssf: ["{\"tovolume\":\"96\",\"source\":\"jnl_sfx\",\"toyear\":\"2008\",\"type\":\"electronic\",\"toissue\":\"4\"}"], issn_ss: ["00168092"], title_ts: ["Georgetown Law Journal", "GEORGETOWN LAW J"]}
+      refute SolrJournal.valid?(missing_fromyear)
+    end
+    test "with a from year should be true", %{journal: normal} do
+      assert SolrJournal.valid? normal
+    end  
+  end
 end
