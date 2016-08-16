@@ -5,6 +5,8 @@ defmodule Config do
   This module handles fetching values from the config with some additional niceties
   """
 
+  require Logger
+
   @doc """
   Fetches a value from the config, or from the environment if {:system, "VAR"}
   is provided.
@@ -26,7 +28,10 @@ defmodule Config do
     case Application.get_env(app, key) do
       {:system, env_var} ->
         case System.get_env(env_var) do
-          nil -> default
+          nil -> 
+            Logger.error "ENV variable #{key} not set!"
+            if is_nil(default), do: :shutdown
+            default
           val -> val
         end
       {:system, env_var, preconfigured_default} ->
