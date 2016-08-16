@@ -7,7 +7,7 @@ defmodule JournalFetcher do
   for next time
   """
   def fetch(pid, {key, value}) do
-    GenServer.call(pid, {:fetch, key, value}, 20000)
+    GenServer.call(pid, {:fetch, key, value}, 1200000)
   end
 
   def insert(pid, {key, value, doc}) do

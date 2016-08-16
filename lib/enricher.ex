@@ -5,7 +5,8 @@ defmodule Enricher do
   # in our tests and development. i.e. this value should only be _real_ in production. 
   @full_run_schedule Application.get_env(:enricher, :full_run_schedule, "@yearly")
   @update_schedule Application.get_env(:enricher, :update_schedule, "@yearly")
-
+  @min 1000
+  @max 5000
   alias Experimental.GenStage
   use GenStage
   require Logger
@@ -32,13 +33,13 @@ defmodule Enricher do
     {:ok, update2} = GenStage.start_link(UpdateStage, :ok)
     {:ok, update3} = GenStage.start_link(UpdateStage, :ok)
     {:ok, update4} = GenStage.start_link(UpdateStage, :ok)
-    GenStage.sync_subscribe(update1, to: decider1, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(update2, to: decider2, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(update3, to: decider3, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(update4, to: decider4, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(decider1, to: harvest, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(decider2, to: harvest, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(decider3, to: harvest, min_demand: 5000, max_demand: 10000)
-    GenStage.sync_subscribe(decider4, to: harvest, min_demand: 5000, max_demand: 10000)
+    GenStage.sync_subscribe(update1, to: decider1, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(update2, to: decider2, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(update3, to: decider3, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(update4, to: decider4, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(decider1, to: harvest, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(decider2, to: harvest, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(decider3, to: harvest, min_demand: @min, max_demand: @max)
+    GenStage.sync_subscribe(decider4, to: harvest, min_demand: @min, max_demand: @max)
   end
 end
