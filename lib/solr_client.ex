@@ -113,7 +113,13 @@ defmodule SolrClient do
   def decode(:error), do: nil
 
   def decode(body) do
-    Poison.decode!(body)
+    case Poison.decode(body) do
+      {:ok, json} -> json
+      {:error, msg} ->
+        Logger.error "Error decoding json: #{msg}"
+        Logger.error body
+        nil
+    end
   end
 
   def cast_to_docs(%{"error" => _msg}), do: nil
@@ -128,6 +134,9 @@ defmodule SolrClient do
     |> Enum.map(&SolrJournal.new(&1))
   end
   
+  # This will catch json parsing errors
+  def get_docs(nil), do: []
+
   # This will intercept Solr server side errors
   def get_docs(%{"error" => %{"code" => code, "msg" => msg}, "responseHeader" => %{"params" => params}}) do
     Logger.error "Solr error #{code}: #{msg}. Params: #{inspect params}"
