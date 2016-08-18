@@ -111,6 +111,7 @@ defmodule SolrClient do
   end
 
   def decode(:error), do: nil
+  def decode(nil), do: nil
 
   def decode(body) do
     case Poison.decode(body) do
@@ -122,7 +123,7 @@ defmodule SolrClient do
     end
   end
 
-  def cast_to_docs(%{"error" => _msg}), do: nil
+  def cast_to_docs(%{"error" => _msg}), do: []
 
   def cast_to_docs(solr_response) do
      get_docs(solr_response)
