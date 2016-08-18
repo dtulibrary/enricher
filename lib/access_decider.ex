@@ -3,6 +3,7 @@ defmodule AccessDecider do
 
   @dtu_only ["dtu"]
   @open_access ["dtupub", "dtu"]
+  @embargoed ["embargo"]
 
   def create_update(solr_doc, fetcher) do
     decide(solr_doc, fetcher)
@@ -54,7 +55,7 @@ defmodule AccessDecider do
       is_nil(journal) -> nil
       SolrJournal.holdings(journal) == "NONE" -> nil
       SolrJournal.under_embargo?(journal: journal, article: doc) ->
-        [fulltext_access: [], fulltext_info: "sfx"]
+        [fulltext_access: @embargoed, fulltext_info: "sfx"]
       SolrJournal.open_access?(journal) ->
         [fulltext_access: @open_access, fulltext_info: "sfx"]  
       SolrJournal.within_holdings?(journal: journal, article: doc) ->
