@@ -53,6 +53,8 @@ defmodule AccessDecider do
     cond do
       is_nil(journal) -> nil
       SolrJournal.holdings(journal) == "NONE" -> nil
+      SolrJournal.under_embargo?(journal: journal, article: doc) ->
+        [fulltext_access: [], fulltext_info: "sfx"]
       SolrJournal.open_access?(journal) ->
         [fulltext_access: @open_access, fulltext_info: "sfx"]  
       SolrJournal.within_holdings?(journal: journal, article: doc) ->

@@ -1,5 +1,6 @@
 defmodule SolrJournalTest do
   use ExUnit.Case
+  doctest SolrJournal
 
   setup do
     journal = SolrJournal.new(%{
@@ -83,37 +84,43 @@ defmodule SolrJournalTest do
     assert true == SolrJournal.open_access?(oa_journal)
   end
 
-  test "within_holdings?", %{journal: journal} do
-    before_doc = SolrDoc.new(%{
-     "journal_issue_ssf" => ["1"],
-     "issn_ss" => ["03702634"],
-     "journal_vol_ssf" => ["33"],
-     "pub_date_tis" => [1933]
-   })
-   refute SolrJournal.within_holdings?(journal: journal, article: before_doc)
-   after_doc = SolrDoc.new(%{
-        "journal_issue_ssf" => ["1"],
-        "issn_ss" => ["03702634"],
-        "journal_vol_ssf" => ["33"],
-        "pub_date_tis" => [1956]
+  describe "within_holdings?" do
+    test "when doc is published before holdings", %{journal: journal} do
+      before_doc = SolrDoc.new(%{
+       "journal_issue_ssf" => ["1"],
+       "issn_ss" => ["03702634"],
+       "journal_vol_ssf" => ["33"],
+       "pub_date_tis" => [1933]
       })
-    assert SolrJournal.within_holdings?(journal: journal, article: after_doc)
+      refute SolrJournal.within_holdings?(journal: journal, article: before_doc)
+    end
+    test "when doc is published within holdings", %{journal: journal} do
+     after_doc = SolrDoc.new(%{
+          "journal_issue_ssf" => ["1"],
+          "issn_ss" => ["03702634"],
+          "journal_vol_ssf" => ["33"],
+          "pub_date_tis" => [1956]
+        })
+      assert SolrJournal.within_holdings?(journal: journal, article: after_doc)
+    end
+    test "when doc is published in between two holdings periods" do
+      complex_holdings = SolrJournal.new(%{
+        "holdings_ssf" => [
+         "{\"placement\":\"WESCON conference\",\"tovolume\":\"21\",\"fromyear\":\"1977\",\"fromvolume\":\"21\",\"toyear\":\"1977\",\"alis_key\":\"000139306\",\"type\":\"printed\"}",
+         "{\"placement\":\"WESCON conference\",\"tovolume\":\"34\",\"fromyear\":\"1979\",\"fromvolume\":\"23\",\"toyear\":\"1990\",\"alis_key\":\"000139306\",\"type\":\"printed\"}"
+       ]})
+      middle = SolrDoc.new(%{"pub_date_tis" => [1978]})
 
-    complex_holdings = SolrJournal.new(%{
-      "holdings_ssf" => [
-       "{\"placement\":\"WESCON conference\",\"tovolume\":\"21\",\"fromyear\":\"1977\",\"fromvolume\":\"21\",\"toyear\":\"1977\",\"alis_key\":\"000139306\",\"type\":\"printed\"}",
-       "{\"placement\":\"WESCON conference\",\"tovolume\":\"34\",\"fromyear\":\"1979\",\"fromvolume\":\"23\",\"toyear\":\"1990\",\"alis_key\":\"000139306\",\"type\":\"printed\"}"
-     ]})
-    middle = SolrDoc.new(%{"pub_date_tis" => [1978]})
-    refute SolrJournal.within_holdings?(journal: complex_holdings, article: middle)
-
-    missing_toyear = %SolrJournal{holdings_ssf: ["{\"source\":\"jnl_sfx\",\"fromyear\":\"1997\",\"type\":\"electronic\"}"],
- issn_ss: ["15325016", "15325008"],
- title_ts: ["Electric power components and systems",
-  "ELECTR POWER COMPON SYST"]}
-    within = SolrDoc.new(issn_ss: [15325016], pub_date_tis: [1998])
-    assert SolrJournal.within_holdings?(journal: missing_toyear, article: within)
-
+      refute SolrJournal.within_holdings?(journal: complex_holdings, article: middle)
+    end
+    test "when doc is has no toyear" do
+      missing_toyear = %SolrJournal{holdings_ssf: ["{\"source\":\"jnl_sfx\",\"fromyear\":\"1997\",\"type\":\"electronic\"}"],
+   issn_ss: ["15325016", "15325008"],
+   title_ts: ["Electric power components and systems",
+    "ELECTR POWER COMPON SYST"]}
+      within = SolrDoc.new(issn_ss: [15325016], pub_date_tis: [1998])
+      assert SolrJournal.within_holdings?(journal: missing_toyear, article: within)
+    end
   end
   describe "year_range" do
     # Sometimes fromyear is missing - this is caused by a user error when entering data in SFX
@@ -136,5 +143,16 @@ defmodule SolrJournalTest do
     test "with a from year should be true", %{journal: normal} do
       assert SolrJournal.valid? normal
     end  
+  end
+  describe "embargo/1" do
+    test "it returns value from embargo_ssf" do
+      assert 256 == SolrJournal.embargo(%SolrJournal{embargo_ssf: ["256"]})
+    end
+    test "it returns 0 if the number is missing" do
+      assert 0 == SolrJournal.embargo(%SolrJournal{})
+    end
+    test "it returns 0 if the number is a blank array" do
+      assert 0 == SolrJournal.embargo(%SolrJournal{embargo_ssf: []})
+    end
   end
 end

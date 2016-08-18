@@ -1,5 +1,5 @@
 defmodule SolrJournal do
-  defstruct [:issn_ss, :holdings_ssf, :title_ts]
+  defstruct [:issn_ss, :holdings_ssf, :title_ts, :embargo_ssf]
   use ExConstructor
 
   def holdings(%SolrJournal{holdings_ssf: nil}), do: "NONE"
@@ -13,6 +13,36 @@ defmodule SolrJournal do
     ]
   end
 
+  def embargo(%SolrJournal{embargo_ssf: nil}), do: 0
+  def embargo(%SolrJournal{embargo_ssf: []}), do: 0
+  def embargo(%SolrJournal{embargo_ssf: [first|_]}), do: String.to_integer(first)
+
+  @doc """
+  Given a journal with an embargo represented as days
+  Convert this to years, rounding up.
+
+  ## Examples
+  
+      iex> SolrJournal.embargo_years(%SolrJournal{embargo_ssf: ["256"]})
+      1
+      iex> SolrJournal.embargo_years(%SolrJournal{embargo_ssf: ["110"]})
+      1
+      iex> SolrJournal.embargo_years(%SolrJournal{})
+      0
+
+  """
+  def embargo_years(solr_journal) do
+    solr_journal
+    |> embargo
+    |> to_nearest_year
+  end
+
+  def to_nearest_year(days) do
+    days
+    |> Kernel./(365)
+    |> Float.ceil
+    |> Kernel.trunc
+  end
   def valid?(%SolrJournal{holdings_ssf: nil}), do: false
 
   def valid?(%SolrJournal{holdings_ssf: holdings}) do 
@@ -29,6 +59,33 @@ defmodule SolrJournal do
         _ -> message <> "No from year"
       end  
     end  
+  end
+
+  @doc """
+  Determine whether a given article is within a journal's embargo period.  
+  """
+  def under_embargo?(journal: journal, article: article) do
+    under_embargo?(journal: journal, article: article, current_year: DateTime.utc_now.year)
+  end
+
+  @doc """
+  Determine whether a given article is within a journal's embargo period. This interface is more testable as it is not dependent the current year.
+
+  ## Examples
+
+      iex>SolrJournal.under_embargo?(journal: %SolrJournal{}, article: %SolrDoc{pub_date_tis: [2016]}, current_year: 2016)
+      false
+
+      iex>SolrJournal.under_embargo?(journal: %SolrJournal{embargo_ssf: ["256"]}, article: %SolrDoc{pub_date_tis: [2016]}, current_year: 2016)
+      true
+
+   """
+  def under_embargo?(journal: journal, article: article, current_year: current_year) do
+    case SolrJournal.embargo_years(journal) do
+      0 -> false
+      embargo_years -> 
+        SolrDoc.year(article) > (DateTime.utc_now.year - embargo_years)
+    end
   end
 
   def holdings_ranges(%SolrJournal{holdings_ssf: holdings}) do
