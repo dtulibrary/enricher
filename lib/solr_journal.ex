@@ -69,7 +69,7 @@ defmodule SolrJournal do
   end
 
   @doc """
-  Determine whether a given article is within a journal's embargo period. This interface is more testable as it is not dependent the current year.
+  Determine whether a given article is within a journal's embargo period. This interface is more testable as it is not dependent on the current year.
 
   ## Examples
 
@@ -84,7 +84,7 @@ defmodule SolrJournal do
     case SolrJournal.embargo_years(journal) do
       0 -> false
       embargo_years -> 
-        SolrDoc.year(article) > (DateTime.utc_now.year - embargo_years)
+        SolrDoc.year(article) > (current_year - embargo_years)
     end
   end
 
