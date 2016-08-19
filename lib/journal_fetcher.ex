@@ -45,9 +45,8 @@ defmodule JournalFetcher do
   defp fetch_from_solr(name, key, value) do
     Logger.debug "fetching from solr"
     doc = SolrClient.fetch_journal(key, value)
-    unless is_nil(doc) do 
-      :ets.insert(name, {"#{key}:#{value}", doc})
-    end
+    # Cache the response, even if it's empty, to prevent duplicate requests
+    :ets.insert(name, {"#{key}:#{value}", doc})
     doc
   end
 
