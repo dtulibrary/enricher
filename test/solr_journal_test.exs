@@ -121,6 +121,16 @@ defmodule SolrJournalTest do
       within = SolrDoc.new(issn_ss: [15325016], pub_date_tis: [1998])
       assert SolrJournal.within_holdings?(journal: missing_toyear, article: within)
     end
+    test "another test case" do
+      pest_journal = %SolrJournal{embargo_ssf: nil,
+ holdings_ssf: ["{\"fromissue\":\"1\",\"source\":\"jnl_sfx\",\"fromvolume\":\"56\",\"fromyear\":\"2000\",\"type\":\"electronic\"}"],
+ issn_ss: ["15264998", "1526498x"],
+ title_ts: ["Pest management science", "PEST MANAGE SCI"]}
+
+    pest_article = %SolrDoc{pub_date_tis: [2016]}
+    refute SolrJournal.under_embargo?(journal: pest_journal, article: pest_article) 
+    assert SolrJournal.within_holdings?(journal: pest_journal, article: pest_article) 
+    end
   end
   describe "year_range" do
     # Sometimes fromyear is missing - this is caused by a user error when entering data in SFX
