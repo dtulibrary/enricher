@@ -160,14 +160,21 @@ defmodule SolrClient do
   defmodule Fetcher do
     @metastore_solr "#{Config.get(:enricher, :solr_url)}/solr/metastore/toshokan"
 
-    def get(query_string, already_retried \\ false) do
+    def get(query_string, retries \\ 0)
+    def get(query_string, 3) do
+      Logger.error "Query timed out 3 times! Exiting..."
+      Logger.error query_string
+      :shutdown
+    end
+    def get(query_string, retries) do
       url = @metastore_solr <> "?" <> query_string
       Logger.debug "Fetching #{url}"
-      case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 20000, recv_timeout: 20000) do
+      case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 30000, recv_timeout: 30000) do
          {:ok, %HTTPoison.Response{body: body}} -> body
          {:error, %HTTPoison.Error{reason: reason}} ->
-           Logger.error "Error querying #{url} - #{reason}. Retrying..."
-           unless already_retried, do: get(query_string, true)
+           Logger.error "Error querying #{url} - #{reason}."
+           :timer.sleep(10000) # Give Solr a break
+           get(query_string, retries + 1)
       end
     end
   end
