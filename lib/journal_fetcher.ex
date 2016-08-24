@@ -37,13 +37,13 @@ defmodule JournalFetcher do
 
   defp fetch_ets(name, key, value) do
     case :ets.lookup(name, "#{key}:#{value}") do
+      [{_id, nil}|_] -> %SolrJournal{} # this means that we have already done the search, but got no results
       [{_id, doc}|_] -> doc
       [] -> nil
     end
   end
 
   defp fetch_from_solr(name, key, value) do
-    Logger.debug "fetching from solr"
     doc = SolrClient.fetch_journal(key, value)
     # Cache the response, even if it's empty, to prevent duplicate requests
     :ets.insert(name, {"#{key}:#{value}", doc})

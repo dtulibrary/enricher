@@ -79,4 +79,17 @@ defmodule AccessDeciderTest do
     end
   end
 
+  describe "sfx_fulltext\3" do
+    test "with an empty journal" do
+      assert nil == AccessDecider.sfx_fulltext(%SolrDoc{}, :bla, %SolrJournal{})
+    end
+    test "with a valid sfx holding" do
+      pest_journal = %SolrJournal{embargo_ssf: nil,
+ holdings_ssf: ["{\"fromissue\":\"1\",\"source\":\"jnl_sfx\",\"fromvolume\":\"56\",\"fromyear\":\"2000\",\"type\":\"electronic\"}"],
+ issn_ss: ["15264998", "1526498x"],
+ title_ts: ["Pest management science", "PEST MANAGE SCI"]}
+      pest_article = %SolrDoc{pub_date_tis: [2016]}
+      refute nil == AccessDecider.sfx_fulltext(pest_article, :bla, pest_journal)
+    end
+  end
 end

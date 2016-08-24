@@ -51,8 +51,13 @@ defmodule AccessDecider do
   """
   def sfx_fulltext(doc, fetcher) do
     journal = SolrClient.journal_for_article(doc, fetcher)
+    sfx_fulltext(doc, fetcher, journal)
+  end
+
+  def sfx_fulltext(doc, _fetcher, journal) do
     cond do
       is_nil(journal) -> nil
+      %SolrJournal{} == journal -> nil
       SolrJournal.holdings(journal) == "NONE" -> nil
       SolrJournal.under_embargo?(journal: journal, article: doc) ->
         [fulltext_access: @embargoed, fulltext_info: "sfx"]
