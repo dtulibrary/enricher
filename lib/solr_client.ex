@@ -71,6 +71,17 @@ defmodule SolrClient do
     {docs, next_cursor}
   end
 
+  def fetch_article(id) do
+    %{"q" => "cluster_id_ss:#{id}", "wt" => "json"} 
+    |> URI.encode_query
+    |> @fetcher.get
+    |> decode
+    |> cast_to_docs
+    |> hd
+  end
+
+
+
   def all_journals(rows) do
     @all_journals_params 
     |> Map.merge(%{"rows" => rows})
