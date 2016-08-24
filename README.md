@@ -27,6 +27,10 @@ mix deps.get
 
 To run the application, you will first need to set the url of the Solr that Enricher should query and update: `export SOLR_URL=http://localhost:8983`. The application will add `/solr/metastore/toshokan` or `/solr/metastore/update` to this url as appropriate. In dev mode it may be appropriate to run `iex -S mix` to launch a console. You can then trigger the update jobs manually using `Enricher.start_harvest(:full | :partial)`. A full run will update all relevant documents in the system while a partial run will only update documents coming from SFX and documents where `fulltext_availability_ss` is of type `UNDETERMINED`. In production mode, Enricher will schedule these jobs using the CRON scheduled defined in `config/prod.exs`. 
 
+## Helpers
+
+To assist in debugging article access decisions, there are a couple of helper methods in the `Helpers` module you can use. To test a single access decision, use the following method, supplying the document's cluster id as an argument: `mix run -e "Helpers.test_article(2287274192)"`. To update a single document, use the `update_article\1` method in the same manner.
+
 ## System Design
 
 The application uses the Elixir GenStage pattern. There are three stages, `HarvestStage`, `DeciderStage` and `UpdateStage`, each of which calls client code before handing its results to the next stage. Read the Elixir GenStage docs for more information about the pattern and the API.
