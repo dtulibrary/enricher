@@ -39,16 +39,21 @@ The application uses the Elixir GenStage pattern. There are three stages, `Harve
 
 Of the three stages, only `HarvestStage` cannot be run concurrently. This is because it pages through a result set using a cursor. This cursor is maintained within the stage's state. In principle, there could be multiple instances of `DeciderStage` and `UpdateStage` running concurrently, to do this you would simply add multiple instances in the `Enricher.start_harvest\1` method, ensuring that all the `DeciderStage` instances subscribe to the same `HarvestStage`. However, the major bottleneck in the system is Solr. All stages use Solr in some way and increasing the level of concurrency will increase the level of Solr requests potentially leading to errors.
 
+## Caching
+
+Since many articles belong to the same journals, we cache our journal requests to cut down on the number of HTTP requests and thus speed up the application. The `JournalFetcher` module is responsible for this; it will create an [Erlang Term Storage](http://elixir-lang.org/getting-started/mix-otp/ets.html) table and populate this with the journals retrieved from Solr. When a journal is requested for the second time, it will thus be retreived from ETS rather than from Metastore. 
+
 ## Improvements
 
 The application is not perfect, here are a number of potential areas for improvement:
 
-  -  Use HTTP KeepAlive for all Solr requests to improve query performance.
-  -  We should use ETS (Erlang Term Storage) for temporary storage of journal data to prevent duplicate Solr requests in the `DeciderStage`.
+  -  ~~Use HTTP KeepAlive for all Solr requests to improve query performance.~~
+  -  ~~We should use ETS (Erlang Term Storage) for temporary storage of journal data to prevent duplicate Solr requests in the `DeciderStage`.~~
   -  `AccessDecider` could also check the open access DOI resolver for access information.
   -  We need to experiment more with concurrency to determine the maximum request level.
-  -  At present, we use GenStage defaults (between 500 and 1000) for determining Solr query size and we commit updates after each batch. It may be appropriate to configure a larger batch size.
+  -  ~~At present, we use GenStage defaults (between 500 and 1000) for determining Solr query size and we commit updates after each batch. It may be appropriate to configure a larger batch size.~~
   -  GenStage Flow might be a more suitable design pattern.
+  - We need to get a handle on release and deploy packaging.
 
 ## Build
 
