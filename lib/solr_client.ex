@@ -7,7 +7,7 @@ defmodule SolrClient do
   @full_query_params %{
     "q" => "format:article OR format:book",
     "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
+    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
     "sort" => "id asc",
     "rows" => 10000
   }
@@ -15,7 +15,7 @@ defmodule SolrClient do
     "q" => "fulltext_availability_ss:UNDETERMINED OR fulltext_info_ss:sfx",
     "fq" => "format:article OR format:book",
     "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format",
+    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
     "sort" => "id asc",
     "rows" => 10000
 

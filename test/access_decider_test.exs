@@ -35,36 +35,48 @@ defmodule AccessDeciderTest do
         "timestamp"=>"2016-03-22T11:48:30.289Z",
         "score"=>17.687468
       }
-      book_doc = SolrDoc.new(solr_book)
-    {:ok, open_access: oa_doc, book: book_doc}
+    book_doc = SolrDoc.new(solr_book)
+    {:ok, fetcher} = GenServer.start_link(JournalFetcher, :test)
+    {:ok, open_access: oa_doc, book: book_doc, fetcher: fetcher}
   end
 
-  test "create_updater - open access article", %{open_access: oa_doc} do
-    decision = AccessDecider.create_update(oa_doc)
-    assert ["dtupub", "dtu"] == decision.fulltext_access
-    assert "metastore" == decision.fulltext_info
+  describe "create_update" do 
+    test "open access article should be publically accessible", %{open_access: oa_doc, fetcher: fetcher} do
+      decision = AccessDecider.create_update(oa_doc, fetcher)
+      assert ["dtupub", "dtu"] == decision.fulltext_access
+      assert "metastore" == decision.fulltext_info
+    end
+
+    test "sfx book should have access dtu", %{book: book, fetcher: fetcher} do
+      decision = AccessDecider.create_update(book, fetcher)
+      assert ["dtu"] == decision.fulltext_access
+      assert "sfx" == decision.fulltext_info
+    end
+
+    test "non-sfx book should not have online access", %{fetcher: fetcher} do
+      book = %SolrDoc{format: "book", source_ss: ["alis"]}
+      decision = AccessDecider.create_update(book, fetcher)
+      assert [] == decision.fulltext_access
+      assert "none" == decision.fulltext_info  
+    end
+    test "pure fulltext", %{fetcher: fetcher}  do
+      pure_doc_with_fulltext = SolrDoc.new(%{
+        "source_type_ss" => ["research"],
+        "fulltext_list_ssf" => [
+          "{\"source\":\"rdb_vbn\",\"local\":false,\"type\":\"research\",\"url\":\"http://vbn.aau.dk/ws/files/228080680/PnP_iMG_DC_TCST_final.pdf\"}"
+        ]
+        })
+      decision = AccessDecider.create_update(pure_doc_with_fulltext, fetcher)
+      assert ["dtupub", "dtu"] == decision.fulltext_access
+      assert "metastore" == decision.fulltext_info
+    end
+
+    test "pure without fulltext", %{fetcher: fetcher}  do
+      pure_doc_no_fulltext = SolrDoc.new(%{"source_type_ss" => ["research"]})
+      decision = AccessDecider.create_update(pure_doc_no_fulltext, fetcher)
+      assert [] == decision.fulltext_access
+      assert "none" == decision.fulltext_info
+    end
   end
 
-  test "create_updater - book", %{book: book} do
-    decision = AccessDecider.create_update(book)
-    assert ["dtu"] == decision.fulltext_access
-    assert "sfx" == decision.fulltext_info
-  end
-
-  test "pure fulltext" do
-    pure_doc_with_fulltext = SolrDoc.new(%{
-      "source_type_ss" => ["research"],
-      "fulltext_list_ssf" => [
-        "{\"source\":\"rdb_vbn\",\"local\":false,\"type\":\"research\",\"url\":\"http://vbn.aau.dk/ws/files/228080680/PnP_iMG_DC_TCST_final.pdf\"}"
-      ]
-      })
-    decision = AccessDecider.create_update(pure_doc_with_fulltext)
-    assert ["dtupub", "dtu"] == decision.fulltext_access
-    assert "metastore" == decision.fulltext_info
-
-    pure_doc_no_fulltext = SolrDoc.new(%{"source_type_ss" => ["research"]})
-    decision = AccessDecider.create_update(pure_doc_no_fulltext)
-    assert [] == decision.fulltext_access
-    assert "none" == decision.fulltext_info
-  end
 end

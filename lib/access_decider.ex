@@ -22,7 +22,7 @@ defmodule AccessDecider do
   """
   def decide(solr_doc, fetcher) do
     check_fulltext_availability(solr_doc, fetcher, [
-        &is_book/2,
+        &is_ebook/2,
         &metastore_fulltext/2,
         &sfx_fulltext/2,
     ])
@@ -39,8 +39,8 @@ defmodule AccessDecider do
     end
   end
 
-  def is_book(solr_doc, _fetcher) do
-    if solr_doc.format == "book" do 
+  def is_ebook(solr_doc, _fetcher) do
+    if solr_doc.format == "book" && "dtu_sfx" in solr_doc.source_ss do 
       [fulltext_access: @dtu_only, fulltext_info: "sfx"]
     end
   end
