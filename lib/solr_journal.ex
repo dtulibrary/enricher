@@ -1,5 +1,5 @@
 defmodule SolrJournal do
-  defstruct [:issn_ss, :holdings_ssf, :title_ts, :embargo_ssf]
+  defstruct [ :holdings_ssf, :title_ts, :embargo_ssf, issn_ss: [], eissn_ss: []]
   use ExConstructor
 
   def holdings(%SolrJournal{holdings_ssf: nil}), do: "NONE"
@@ -108,6 +108,30 @@ defmodule SolrJournal do
         true
       :else -> false
     end
+  end
+
+
+  @identifiers [:issn_ss, :eissn_ss]
+
+  @doc """
+  Given a journal, return a list of all its
+  identifiers in the form ["identifier:value"]
+  
+  ## Examples
+
+      iex> SolrJournal.identifiers(%SolrJournal{issn_ss: ["12345678", "98765432"]})
+      ["issn_ss:12345678", "issn_ss:98765432"]
+      iex> SolrJournal.identifiers(%SolrJournal{issn_ss: ["12345678"], eissn_ss: ["98765432"]})
+      ["eissn_ss:98765432", "issn_ss:12345678"]
+      iex> SolrJournal.identifiers(%SolrJournal{})
+      []
+  """
+  def identifiers(journal) do
+    Enum.reduce(@identifiers, [], fn(id, acc) ->
+      Map.get(journal, id)
+      |> Enum.map(fn(val) -> "#{id}:#{val}" end)
+      |> Enum.concat(acc)
+    end)
   end
 
   def title(%SolrJournal{title_ts: nil}), do: ""

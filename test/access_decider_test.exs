@@ -36,8 +36,8 @@ defmodule AccessDeciderTest do
         "score"=>17.687468
       }
     book_doc = SolrDoc.new(solr_book)
-    {:ok, fetcher} = GenServer.start_link(JournalFetcher, :test)
-    {:ok, open_access: oa_doc, book: book_doc, fetcher: fetcher}
+    {:ok, cache} = GenServer.start_link(JournalCache, [])
+    {:ok, open_access: oa_doc, book: book_doc, fetcher: cache}
   end
 
   describe "create_update" do 

@@ -3,15 +3,15 @@ defmodule DeciderStage do
   use GenStage
   require Logger
 
-  def init(fetcher_pid) do
+  def init(cache_pid) do
     Logger.info "Commencing Decider Stage"
-    {:producer_consumer, fetcher_pid}
+    {:producer_consumer, cache_pid}
   end
 
-  def handle_events(events, _from, fetcher) do
+  def handle_events(events, _from, cache_pid) do
     :timer.sleep(1000)
-    updates = Enum.map(events, &AccessDecider.create_update(&1, fetcher))
-    {:noreply, updates, fetcher}
+    updates = Enum.map(events, &AccessDecider.create_update(&1, cache_pid))
+    {:noreply, updates, cache_pid}
   end
 
   def handle_info({{producer, _sub}, :nomoredocs}, _state) do

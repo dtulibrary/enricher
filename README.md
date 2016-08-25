@@ -41,7 +41,7 @@ Of the three stages, only `HarvestStage` cannot be run concurrently. This is bec
 
 ## Caching
 
-Since many articles belong to the same journals, we cache our journal requests to cut down on the number of HTTP requests and thus speed up the application. The `JournalFetcher` module is responsible for this; it will create an [Erlang Term Storage](http://elixir-lang.org/getting-started/mix-otp/ets.html) table and populate this with the journals retrieved from Solr. When a journal is requested for the second time, it will thus be retreived from ETS rather than from Metastore. 
+To cut down on the number of HTTP requests, we begin the Enrichment process by retrieving all journals that come from SFX and storing them in memory using [Erlang Term Storage](http://elixir-lang.org/getting-started/mix-otp/ets.html). This table will be dropped upon conclusion of the harvest method. 
 
 ## Improvements
 

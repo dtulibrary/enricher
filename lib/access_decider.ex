@@ -5,8 +5,8 @@ defmodule AccessDecider do
   @open_access ["dtupub", "dtu"]
   @embargoed ["embargo"]
 
-  def create_update(solr_doc, fetcher) do
-    decide(solr_doc, fetcher)
+  def create_update(solr_doc, cache_pid) do
+    decide(solr_doc, cache_pid)
     |> Enum.into(%{})
     |> Map.merge(%{id: solr_doc.id})
     |> MetastoreUpdate.new
@@ -20,8 +20,8 @@ defmodule AccessDecider do
   for this information, either sfx or metastore, e.g.
   [fulltext_access: ["dtu"], fulltext_info: "sfx"]
   """
-  def decide(solr_doc, fetcher) do
-    check_fulltext_availability(solr_doc, fetcher, [
+  def decide(solr_doc, cache_pid) do
+    check_fulltext_availability(solr_doc, cache_pid, [
         &is_ebook/2,
         &metastore_fulltext/2,
         &sfx_fulltext/2,
@@ -32,14 +32,14 @@ defmodule AccessDecider do
   defp check_fulltext_availability(_doc, _pid, []), do: [fulltext_access: [], fulltext_info: "none"]
 
   # run through all check functions returning the value of the first successful check
-  defp check_fulltext_availability(doc, fetcher, [check_function | remaining_functions]) do
-    case check_function.(doc, fetcher) do
-      nil -> check_fulltext_availability(doc, fetcher, remaining_functions)
+  defp check_fulltext_availability(doc, cache_pid, [check_function | remaining_functions]) do
+    case check_function.(doc, cache_pid) do
+      nil -> check_fulltext_availability(doc, cache_pid, remaining_functions)
       x when is_list(x) -> x
     end
   end
 
-  def is_ebook(solr_doc, _fetcher) do
+  def is_ebook(solr_doc, _cache_pid) do
     if solr_doc.format == "book" && "dtu_sfx" in solr_doc.source_ss do 
       [fulltext_access: @dtu_only, fulltext_info: "sfx"]
     end
@@ -49,12 +49,12 @@ defmodule AccessDecider do
   Check for fulltext based on the SFX journal information
   (held in Metastore)
   """
-  def sfx_fulltext(doc, fetcher) do
-    journal = SolrClient.journal_for_article(doc, fetcher)
-    sfx_fulltext(doc, fetcher, journal)
+  def sfx_fulltext(doc, cache_pid) do
+    journal = JournalCache.journal_for_article(cache_pid, doc)
+    sfx_fulltext(doc, cache_pid, journal)
   end
 
-  def sfx_fulltext(doc, _fetcher, journal) do
+  def sfx_fulltext(doc, _cache_pid, journal) do
     cond do
       is_nil(journal) -> nil
       %SolrJournal{} == journal -> nil
@@ -73,7 +73,7 @@ defmodule AccessDecider do
   Check if there is fulltext access based on
   the information in the Solr document.
   """
-  def metastore_fulltext(solr_doc, _fetcher) do
+  def metastore_fulltext(solr_doc, _cache_pid) do
     fulltext_types = SolrDoc.fulltext_types(solr_doc)
     cond do
       is_nil(fulltext_types) -> nil

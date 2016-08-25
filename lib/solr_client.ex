@@ -28,24 +28,6 @@ defmodule SolrClient do
     "rows" => 100000 # really there's only approx 7,000
   }
 
-  @doc """
-  Returns the coverage for a journal given a specific identifier
-
-  ```
-  SolrHoldings.get_coverage("issn", "0036-1399")
-  => [from: {1966, 14, 1}, to: {}, embargo: 0]
-  ```
-  """
-  def get_coverage(identifier, value) do
-    SolrClient.fetch_journal(identifier, value)
-    |> SolrJournal.holdings
-  end
-
-  def journal_for_article(article_doc, fetcher) do
-    {identifier, value} = SolrDoc.identifier(article_doc)
-    JournalFetcher.fetch(fetcher, {identifier, value})
-  end
-
   def full_update(number, cursor) do
     fetch_docs(@full_query_params, number, cursor) 
   end

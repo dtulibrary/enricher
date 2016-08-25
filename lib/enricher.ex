@@ -24,11 +24,12 @@ defmodule Enricher do
   def start_harvest(mode) do
     Logger.info "Starting #{mode} harvest..."
     {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
-    {:ok, fetcher_pid} = GenServer.start_link(JournalFetcher, :journals)
-    {:ok, decider1} = GenStage.start_link(DeciderStage, fetcher_pid)
-    {:ok, decider2} = GenStage.start_link(DeciderStage, fetcher_pid)
-    {:ok, decider3} = GenStage.start_link(DeciderStage, fetcher_pid)
-    {:ok, decider4} = GenStage.start_link(DeciderStage, fetcher_pid)
+    {:ok, cache_pid} = GenServer.start_link(JournalCache, [])
+    JournalCache.load_journals(cache_pid)
+    {:ok, decider1} = GenStage.start_link(DeciderStage, cache_pid)
+    {:ok, decider2} = GenStage.start_link(DeciderStage, cache_pid)
+    {:ok, decider3} = GenStage.start_link(DeciderStage, cache_pid)
+    {:ok, decider4} = GenStage.start_link(DeciderStage, cache_pid)
     {:ok, update1} = GenStage.start_link(UpdateStage, :ok)
     {:ok, update2} = GenStage.start_link(UpdateStage, :ok)
     {:ok, update3} = GenStage.start_link(UpdateStage, :ok)

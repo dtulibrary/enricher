@@ -5,9 +5,10 @@ defmodule Helpers do
   """
   def test_article(id) do
     IO.puts "Determining access for #{id}..."
-    {:ok, fetcher_pid} = GenServer.start_link(JournalFetcher, :journals)
+    {:ok, cache_pid} = GenServer.start_link(JournalCache, [])
+    JournalCache.load_journals(cache_pid)
     SolrClient.fetch_article(id)
-    |> AccessDecider.decide(fetcher_pid) 
+    |> AccessDecider.decide(cache_pid) 
     |> IO.inspect
   end
 
@@ -16,8 +17,9 @@ defmodule Helpers do
   update the relevant document in Solr.
   """
   def update_article(id) do
-    {:ok, fetcher_pid} = GenServer.start_link(JournalFetcher, :journals)
-    update = SolrClient.fetch_article(id) |> AccessDecider.create_update(fetcher_pid)
+    {:ok, cache_pid} = GenServer.start_link(JournalCache, [])
+    JournalCache.load_journals(cache_pid)
+    update = SolrClient.fetch_article(id) |> AccessDecider.create_update(cache_pid)
     [update] |> MetastoreUpdater.update_docs
     MetastoreUpdater.commit_updates
     IO.inspect update

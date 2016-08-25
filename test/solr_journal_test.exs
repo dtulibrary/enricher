@@ -165,4 +165,9 @@ defmodule SolrJournalTest do
       assert 0 == SolrJournal.embargo(%SolrJournal{embargo_ssf: []})
     end
   end
+  describe "identifiers\1" do
+    test "with two issns" do
+      assert ["issn_ss:12345678", "issn_ss:98765432"] == SolrJournal.identifiers(%SolrJournal{issn_ss: ["12345678", "98765432"]})
+    end
+  end
 end
