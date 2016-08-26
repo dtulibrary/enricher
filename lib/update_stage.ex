@@ -23,12 +23,12 @@ defmodule UpdateStage do
     GenStage.stop(self, :nomoredocs)
   end
 
-  def handle_info(%HTTPoison.AsyncStatus{code: 200}, :ok) do
-    Logger.info "Commit succeeded"
-    {:noreply, [], :ok}
+  def handle_info(%HTTPoison.AsyncStatus{code: 200}, update_count) do
+    Logger.info "Async request succeeded"
+    {:noreply, [], update_count}
   end
 
-  def handle_info(_generic, :ok), do: {:noreply, [], :ok}
+  def handle_info(_generic, count), do: {:noreply, [], count}
 
   @doc """
   Manage update buffer - if over buffer size - commit
@@ -36,6 +36,7 @@ defmodule UpdateStage do
   """
   def commit_buffer(events, update_count) do
     count = Enum.count(events) + update_count 
+    Logger.info "Buffer size is #{count}"
     if count >= @buffer_size do
       Logger.info "Buffer is full - committing #{count} updates..."
       MetastoreUpdater.commit_updates

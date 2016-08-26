@@ -10,7 +10,7 @@ defmodule MetastoreUpdater do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
     Logger.info "Sending updates"
-    HTTPoison.post!(@update_url, body, headers, stream_to: self)# |> handle_response
+    HTTPoison.post!(@update_url, body, headers, stream_to: self)
   end
 
   def handle_response(%HTTPoison.Response{status_code: 400, body: body}) do
