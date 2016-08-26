@@ -8,7 +8,7 @@ defmodule SolrClient do
     "q" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
-    "sort" => "id asc",
+    "sort" => "id desc",
     "rows" => 10000
   }
   @partial_query_params %{
@@ -16,7 +16,7 @@ defmodule SolrClient do
     "fq" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
-    "sort" => "id asc",
+    "sort" => "id desc",
     "rows" => 10000
 
   }
