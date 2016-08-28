@@ -25,7 +25,7 @@ defmodule SolrClient do
     "fq" => "source_ss:jnl_sfx",
     "wt" => "json",
     "sort" => "id asc",
-    "rows" => 100000 # really there's only approx 7,000
+    "rows" => 100000 
   }
 
   def full_update(number, cursor) do
@@ -64,9 +64,8 @@ defmodule SolrClient do
 
 
 
-  def all_journals(rows) do
+  def all_journals do
     @all_journals_params 
-    |> Map.merge(%{"rows" => rows})
     |> URI.encode_query 
     |> @fetcher.get 
     |> decode

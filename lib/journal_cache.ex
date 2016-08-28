@@ -13,7 +13,7 @@ defmodule JournalCache do
   """
   def load_journals(pid) do
     Logger.info "Loading journals"
-    journals = SolrClient.all_journals(20000)
+    journals = SolrClient.all_journals
     GenServer.call(pid, {:load, journals}, 120000)
   end
 
