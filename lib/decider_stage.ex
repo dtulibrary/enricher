@@ -9,7 +9,6 @@ defmodule DeciderStage do
   end
 
   def handle_events(events, _from, cache_pid) do
-    :timer.sleep(1000)
     updates = Enum.map(events, &AccessDecider.create_update(&1, cache_pid))
     {:noreply, updates, cache_pid}
   end
