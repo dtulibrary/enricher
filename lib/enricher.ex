@@ -5,8 +5,8 @@ defmodule Enricher do
   # in our tests and development. i.e. this value should only be _real_ in production. 
   @full_run_schedule Application.get_env(:enricher, :full_run_schedule, "@yearly")
   @update_schedule Application.get_env(:enricher, :update_schedule, "@yearly")
-  @min 1000
-  @max 5000
+  @min 60000
+  @max 100000
   alias Experimental.GenStage
   use GenStage
   require Logger
@@ -23,6 +23,7 @@ defmodule Enricher do
 
   def start_harvest(mode) do
     Logger.info "Starting #{mode} harvest..."
+    {:ok, commit_manager} = CommitManager.start_link
     {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
     {:ok, cache_pid} = GenServer.start_link(JournalCache, [])
     JournalCache.load_journals(cache_pid)
@@ -30,10 +31,10 @@ defmodule Enricher do
     {:ok, decider2} = GenStage.start_link(DeciderStage, cache_pid)
     {:ok, decider3} = GenStage.start_link(DeciderStage, cache_pid)
     {:ok, decider4} = GenStage.start_link(DeciderStage, cache_pid)
-    {:ok, update1} = GenStage.start_link(UpdateStage, :ok)
-    {:ok, update2} = GenStage.start_link(UpdateStage, :ok)
-    {:ok, update3} = GenStage.start_link(UpdateStage, :ok)
-    {:ok, update4} = GenStage.start_link(UpdateStage, :ok)
+    {:ok, update1} = GenStage.start_link(UpdateStage, commit_manager)
+    {:ok, update2} = GenStage.start_link(UpdateStage, commit_manager)
+    {:ok, update3} = GenStage.start_link(UpdateStage, commit_manager)
+    {:ok, update4} = GenStage.start_link(UpdateStage, commit_manager)
     GenStage.sync_subscribe(update1, to: decider1, min_demand: @min, max_demand: @max)
     GenStage.sync_subscribe(update2, to: decider2, min_demand: @min, max_demand: @max)
     GenStage.sync_subscribe(update3, to: decider3, min_demand: @min, max_demand: @max)

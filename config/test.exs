@@ -1,2 +1,3 @@
 use Mix.Config
 config :enricher, :solr_fetcher, SolrClient.TestFetcher
+config :enricher, :metastore_updater, CommitManager.TestUpdater

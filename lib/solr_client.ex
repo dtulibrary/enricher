@@ -150,7 +150,7 @@ defmodule SolrClient do
     def get(query_string, retries) do
       url = @metastore_solr <> "?" <> query_string
       Logger.debug "Fetching #{url}"
-      case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 30000, recv_timeout: 30000) do
+      case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 120000, recv_timeout: 120000) do
          {:ok, %HTTPoison.Response{body: body}} -> body
          {:error, %HTTPoison.Error{reason: reason}} ->
            Logger.error "Error querying #{url} - #{reason}."

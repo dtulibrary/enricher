@@ -3,16 +3,16 @@ defmodule UpdateStage do
   use GenStage
   require Logger
 
-  @buffer_size 1000000
-  def init(:ok) do
-    {:consumer, 0}
+  def init(commit_manager) do
+    {:consumer, commit_manager}
   end
 
-  def handle_events(updates, _from, update_count) do
+  def handle_events(updates, _from, commit_manager) do
     Logger.info "handling update events"
     MetastoreUpdater.update_docs(updates)
-    new_count = commit_buffer(updates, update_count)
-    {:noreply, [], new_count}
+    # Inform commit manager of number of updates 
+    CommitManager.update(commit_manager, Enum.count(updates))
+    {:noreply, [], commit_manager}
   end
   
   def handle_info({{prev, _sub}, :nomoredocs}, _state) do
@@ -23,25 +23,5 @@ defmodule UpdateStage do
     GenStage.stop(self, :nomoredocs)
   end
 
-  def handle_info(%HTTPoison.AsyncStatus{code: 200}, update_count) do
-    Logger.info "Async request succeeded"
-    {:noreply, [], update_count}
-  end
-
-  def handle_info(_generic, count), do: {:noreply, [], count}
-
-  @doc """
-  Manage update buffer - if over buffer size - commit
-  Return new buffer size
-  """
-  def commit_buffer(events, update_count) do
-    count = Enum.count(events) + update_count 
-    Logger.info "Buffer size is #{count}"
-    if count >= @buffer_size do
-      Logger.info "Buffer is full - committing #{count} updates..."
-      MetastoreUpdater.commit_updates
-      0
-    else count
-    end
-  end
+  def handle_info(_generic, state), do: {:noreply, [], state}
 end
