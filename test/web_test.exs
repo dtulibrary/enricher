@@ -17,11 +17,11 @@ defmodule WebTest do
       assert conn.state == :sent
       assert conn.status == 400
     end
-    test "returns 200 if given valid parameters" do
+    test "returns 202 if given valid parameters" do
       conn = conn(:post, "/harvest/create", %{"set" => "full", "endpoint" => "http://solr.test:8983"})
       conn = Enricher.Web.call(conn, @opts)
       assert conn.state == :sent
-      assert conn.status == 201
+      assert conn.status == 202
     end
   end
   describe "status" do
@@ -29,6 +29,13 @@ defmodule WebTest do
       conn = conn(:get, "/harvest/status") |> Enricher.Web.call(@opts)
       assert conn.state == :sent
       assert conn.status == 200
+    end
+  end
+  describe "stop" do
+    test "it stops the harvest" do
+      conn = conn(:post, "/harvest/stop") |> Enricher.Web.call(@opts)
+      assert conn.state == :sent
+      assert conn.status == 204
     end
   end
 end

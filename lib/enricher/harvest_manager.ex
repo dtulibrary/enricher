@@ -37,6 +37,10 @@ defmodule Enricher.HarvestManager do
   def start_harvest(pid, mode, endpoint) do
     GenServer.call(pid, {:start_harvest, mode, endpoint})
   end
+
+  def stop_harvest(pid) do
+    GenServer.call(pid, :stop_harvest)
+  end
   
   def harvest_complete(pid) do
     GenServer.call(pid, :harvest_complete)
@@ -48,6 +52,14 @@ defmodule Enricher.HarvestManager do
 
   def handle_call(:status, _from, status), do: {:reply, status, status}
 
+  def handle_call(:stop_harvest, _from, status) do
+    if Process.alive?(status.reference.pid) do
+      Task.shutdown(status.reference)
+    end
+    updated_status = status |> Map.merge(%{in_progress: false})
+    {:reply, :ok, updated_status}
+  end
+
   def handle_call({:update_count, increment}, _from, status) do
     new_count = Map.get(status, :docs_processed) + increment
     updated_status = status |> Map.merge(%{docs_processed: new_count})
@@ -56,8 +68,11 @@ defmodule Enricher.HarvestManager do
   
   def handle_call({:start_harvest, mode, endpoint}, _from, status) do
     Logger.info "Starting #{mode} harvest..."
-    updated_status = status |> Map.merge(%{start_time: DateTime.utc_now, in_progress: true, endpoint: endpoint, mode: mode})
-    Task.async(fn -> Enricher.start_harvest(mode) end)
+    ref = Task.async(fn -> Enricher.start_harvest(mode) end)
+    updated_status = status |> Map.merge(%{
+      start_time: DateTime.utc_now, in_progress: true, endpoint: endpoint, 
+      mode: mode, reference: ref
+    })
     {:reply, :ok, updated_status}
   end
 
@@ -65,4 +80,17 @@ defmodule Enricher.HarvestManager do
     updated_status = status |> Map.merge(%{in_progress: false, end_time: DateTime.utc_now})
     {:reply, :ok, updated_status}
   end
+
+  @doc """
+  Handle stop message from Harvest Task
+  """
+  def handle_info({:DOWN, ref, :process, _pid, reason}, status) do
+    Logger.info "Received DOWN message for process #{inspect ref} with reason #{reason}"
+    if ref == status.reference do
+      status = status |> Map.merge(%{in_progress: false})
+    end
+    {:noreply, status}
+  end
+
+  def handle_info(_msg, state), do: {:noreply, state}
 end

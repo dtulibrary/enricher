@@ -1,41 +1,33 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <table>
-      <tr>
-        <th>Key</th>
-        <th>Value</th>
-      </tr>
-      <tr>
-        <td>Endpoint</td>
-        <td><%= status.endpoint %></td>
-      </tr>
-      <tr>
-        <td>In Progress</td>
-        <td><%= status.in_progress %></td>
-      </tr>
-      <tr>
-        <td>Mode</td>
-        <td><%= status.mode %></td>
-      </tr>
-      <tr>
-        <td>Documents Processed</td>
-        <td><%= status.docs_processed %></td>
-      </tr>
-      <tr>
-        <td>Start time</td>
-        <td><%= DateTime.to_iso8601(status.start_time) %></td>
-      </tr>
-      <tr>
-        <td>End time</td>
-        <%= if status.end_time do %>
-          <td><%= DateTime.to_iso8601(status.end_time) %></td>
-        <% end %>
-      </tr>
-      <tr>
-        <td>Throughput</td>
-        <td><%= Enricher.Status.throughput(status) %></td>
-      </tr>
-    </table>
-  </body>
-</html>
+<table>
+    <td>Endpoint</td>
+    <td><%= status.endpoint %></td>
+  </tr>
+  <tr>
+    <td>In Progress</td>
+    <td><%= status.in_progress %></td>
+  </tr>
+  <tr>
+    <td>Mode</td>
+    <td><%= status.mode %></td>
+  </tr>
+  <tr>
+    <td>Documents Processed</td>
+    <td><%= status.docs_processed %></td>
+  </tr>
+  <tr>
+    <td>Start time</td>
+    <td><%= DateTime.to_iso8601(status.start_time) %></td>
+  </tr>
+  <tr>
+    <td>End time</td>
+    <td>
+    <%= if status.end_time do %>
+      <%= DateTime.to_iso8601(status.end_time) %>
+    <% end %>
+    </td>
+  </tr>
+  <tr>
+    <td>Throughput</td>
+    <td><%= Enricher.Status.throughput(status) %> per second</td>
+  </tr>
+</table>
