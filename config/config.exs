@@ -19,13 +19,11 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-config :enricher, solr_url: {:system, "SOLR_URL"}
 
 config :logger, :console,
   format: "$time $level $metadata $levelpad$message\n",
   metadata: [:module, :line],
   level: :info
-config :quantum, timezone: :local
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.

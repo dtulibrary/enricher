@@ -1,6 +1,6 @@
 defmodule MetastoreUpdater do
   require Logger
-  @update_url "#{Config.get(:enricher, :solr_url)}/solr/metastore/update"
+  def update_url, do: Enricher.HarvestManager.update_endpoint(Manager)
 
   def update_docs(updates) do
     updates |> create_updates |> send_updates
@@ -10,7 +10,7 @@ defmodule MetastoreUpdater do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
     Logger.info "Sending updates"
-    HTTPoison.post!(@update_url, body, headers, stream_to: self)
+    HTTPoison.post!(update_url, body, headers, stream_to: self)
   end
 
   def handle_response(%HTTPoison.Response{status_code: 400, body: body}) do
@@ -23,7 +23,7 @@ defmodule MetastoreUpdater do
   @doc "Commit updates to Solr asynchronously"
   def commit_updates do
     Logger.info "Committing updates"
-    @update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
+    update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
   end
 
   def create_updates(elems) when is_list(elems) do

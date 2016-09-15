@@ -11,7 +11,9 @@ defmodule UpdateStage do
     Logger.info "handling update events"
     MetastoreUpdater.update_docs(updates)
     # Inform commit manager of number of updates 
-    CommitManager.update(commit_manager, Enum.count(updates))
+    count = Enum.count(updates)
+    Enricher.HarvestManager.update_count(Manager, count)
+    CommitManager.update(commit_manager, count)
     {:noreply, [], commit_manager}
   end
   

@@ -33,6 +33,7 @@ defmodule HarvestStage do
     Logger.debug "new cursor is #{new_cursor}"
     if is_nil(new_cursor) do
       Logger.info "No more docs, messaging subscribers"
+      Enricher.HarvestManager.harvest_complete(Manager)
       GenStage.async_notify(self(), :nomoredocs)
     end
     {:noreply, docs, {mode, new_cursor, subscribers}}

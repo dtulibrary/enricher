@@ -8,6 +8,10 @@ defmodule JournalCache do
 
   ## Client API ##
 
+  def start_link(name \\ nil) do
+    GenServer.start_link(__MODULE__, [], [name: name])
+  end
+
   @doc """
   Load all SFX journals from Metastore
   """

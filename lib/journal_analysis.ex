@@ -5,7 +5,7 @@ defmodule Mix.Tasks.CheckJournals do
   def setup, do: {:ok, _started} = Application.ensure_all_started(:httpoison)
   def run(_args) do
     setup
-    SolrClient.all_journals(100000)
+    SolrClient.all_journals
     |> Enum.each(fn(j) -> 
      unless SolrJournal.valid?(j) do
        Mix.shell.error SolrJournal.invalid_message(j)

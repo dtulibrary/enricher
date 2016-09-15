@@ -20,9 +20,10 @@ defmodule Enricher.Mixfile do
         :logger,
         :httpoison,
         :exconstructor,
-        :quantum,
         :gen_stage,
-        :logger_file_backend
+        :logger_file_backend,
+        :cowboy,
+        :plug
       ]
     ]
   end
@@ -42,10 +43,11 @@ defmodule Enricher.Mixfile do
       {:poison, "~> 2.1"},
       {:exconstructor, "~> 1.0.2"},
       {:sweet_xml, "~> 0.6.1"},
-      {:quantum, ">= 1.7.1"},
       {:logger_file_backend, "0.0.8"},
       {:gen_stage, "~> 0.4.3"},
-      {:distillery, "~> 0.9"}
+      {:distillery, "~> 0.9"},
+      {:cowboy, "~> 1.0.0"},
+      {:plug, "~> 1.0"}
     ]
   end
 end

@@ -62,8 +62,6 @@ defmodule SolrClient do
     |> hd
   end
 
-
-
   def all_journals do
     @all_journals_params 
     |> URI.encode_query 
@@ -139,7 +137,7 @@ defmodule SolrClient do
   def get_docs(solr_response), do: solr_response["response"]["docs"]
 
   defmodule Fetcher do
-    @metastore_solr "#{Config.get(:enricher, :solr_url)}/solr/metastore/toshokan"
+    def metastore_solr, do: Enricher.HarvestManager.search_endpoint(Manager)
 
     def get(query_string, retries \\ 0)
     def get(query_string, 3) do
@@ -147,8 +145,9 @@ defmodule SolrClient do
       Logger.error query_string
       :shutdown
     end
+
     def get(query_string, retries) do
-      url = @metastore_solr <> "?" <> query_string
+      url = metastore_solr <> "?" <> query_string
       Logger.debug "Fetching #{url}"
       case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 120000, recv_timeout: 120000) do
          {:ok, %HTTPoison.Response{body: body}} -> body
