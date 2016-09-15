@@ -25,7 +25,15 @@ mix deps.get
 
 ## Usage
 
-To run the application, you will first need to set the url of the Solr that Enricher should query and update: `export SOLR_URL=http://localhost:8983`. The application will add `/solr/metastore/toshokan` or `/solr/metastore/update` to this url as appropriate. In dev mode it may be appropriate to run `iex -S mix` to launch a console. You can then trigger the update jobs manually using `Enricher.start_harvest(:full | :partial)`. A full run will update all relevant documents in the system while a partial run will only update documents coming from SFX and documents where `fulltext_availability_ss` is of type `UNDETERMINED`. In production mode, Enricher will schedule these jobs using the CRON scheduled defined in `config/prod.exs`. 
+To run the application, run `mix run --no-halt`. This will launch a web interface at `http://localhost:4001`. The interface controls the harvesting process. The following requests are permitted:
+
+```
+curl http://enricher.bla:4001/harvest/status # GET Gives information about the current job's progress
+curl --data set=full --data endpoint=http://solr_url.bla:8983 http://enricher.bla:4001/harvest/create # POST Start a full harvest at the given endpoint
+curl --data set=partial --data endpoint=http://solr_url.bla:8983 http://enricher.bla:4001/harvest/create # POST Start a partial harvest at the given endpoint
+curl -X POST http://enricher.bla:4001/harvest/delete # POST Stops the current harvest job
+```
+There are two harvest modes, `full` and `partial`. `full` will update all articles and books within the given index, `partial` will only update those with a UNDETERMINED status and those that come from SFX. It is envisioned that `full` should be run infrequently as the non-SFX documents are unlikely to change regularly. `partial` should be run on a daily or weekly basis so that new documents are enriched and changes to SFX licenses are reflected promptly in the index.
 
 ## Helpers
 
@@ -37,7 +45,7 @@ The application uses the Elixir GenStage pattern. There are three stages, `Harve
 
 ## Concurrency
 
-Of the three stages, only `HarvestStage` cannot be run concurrently. This is because it pages through a result set using a cursor. This cursor is maintained within the stage's state. In principle, there could be multiple instances of `DeciderStage` and `UpdateStage` running concurrently, to do this you would simply add multiple instances in the `Enricher.start_harvest\1` method, ensuring that all the `DeciderStage` instances subscribe to the same `HarvestStage`. However, the major bottleneck in the system is Solr. All stages use Solr in some way and increasing the level of concurrency will increase the level of Solr requests potentially leading to errors.
+Of the three stages, only `HarvestStage` cannot be run concurrently. This is because it pages through a result set using a cursor. This cursor is maintained within the stage's state. Multiple instances of `DeciderStage` and `UpdateStage` can be run concurrently, the level of concurrency is determined by the number of instances created in the `Enricher.start_harvest\1` method. Note though that the major bottleneck in the system is Solr. Increasing the level of concurrency will increase the volume of Solr requests which has been a cause of errors in my tests.
 
 ## Caching
 
