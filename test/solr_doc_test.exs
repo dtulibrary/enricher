@@ -1,5 +1,5 @@
 defmodule SolrDocTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   setup do
     solr_article = %{
       "_version_" => 1535294313411379200,

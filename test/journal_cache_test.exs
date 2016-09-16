@@ -1,5 +1,5 @@
 defmodule JournalCacheTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   setup do
     {:ok, pid} = GenServer.start_link(JournalCache, [])

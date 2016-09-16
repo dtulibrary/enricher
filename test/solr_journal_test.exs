@@ -1,5 +1,5 @@
 defmodule SolrJournalTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest SolrJournal
 
   setup do

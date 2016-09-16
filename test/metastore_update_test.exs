@@ -1,5 +1,5 @@
 defmodule MetastoreUpdateTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   test "basic struct" do
     fields = %{id: 12345, fulltext_access: ["dtu"], fulltext_info: "sfx"}
     update = MetastoreUpdate.new(fields)

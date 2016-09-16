@@ -1,5 +1,5 @@
 defmodule AccessDeciderTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   setup do
     oa_doc = SolrDoc.new(%{

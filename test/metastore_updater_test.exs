@@ -1,5 +1,5 @@
 defmodule MetastoreUpdaterTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   @update1 MetastoreUpdate.new(%{id: "1937", fulltext_access: ["dtu", "dtupub"], fulltext_info: "metastore"})
   @update2 MetastoreUpdate.new(%{id: "1938", fulltext_access: ["dtu"], fulltext_info: "sfx"})

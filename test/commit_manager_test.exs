@@ -1,5 +1,5 @@
 defmodule CommitManagerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   setup do
     {:ok, manager} = CommitManager.start_link
     {:ok, manager: manager}
