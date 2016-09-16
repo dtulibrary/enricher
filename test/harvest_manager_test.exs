@@ -30,6 +30,13 @@ defmodule HarvestManagerTest do
       assert Enricher.HarvestManager.status(manager) |> Map.get(:docs_processed) == 40
     end
   end
+  describe "update_status" do
+    test "updates the manager status", %{manager: manager} do
+      Enricher.HarvestManager.update_status(manager, %{in_progress: true, docs_processed: 1_000})
+      assert Enricher.HarvestManager.status(manager) |> Map.get(:docs_processed) == 1_000
+      assert Enricher.HarvestManager.status(manager) |> Map.get(:in_progress) == true 
+    end
+  end
   describe "supervision" do
     test "it can be started with a name by a supervisor" do
       import Supervisor.Spec

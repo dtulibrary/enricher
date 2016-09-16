@@ -27,12 +27,12 @@ mix deps.get
 
 To run the application, run `mix run --no-halt`. This will launch a web interface at `http://localhost:4001`. The interface controls the harvesting process. The following requests are permitted:
 
-```
-curl http://enricher.bla:4001/harvest/status # GET Gives information about the current job's progress
-curl --data set=full --data endpoint=http://solr_url.bla:8983 http://enricher.bla:4001/harvest/create # POST Start a full harvest at the given endpoint
-curl --data set=partial --data endpoint=http://solr_url.bla:8983 http://enricher.bla:4001/harvest/create # POST Start a partial harvest at the given endpoint
-curl -X POST http://enricher.bla:4001/harvest/delete # POST Stops the current harvest job
-```
+| Endpoint | Params | Description
+| --- |:----:| ----- |
+| GET /harvest/status | |  Gives information about the current job's progress, returns 202 if a job is in progress, 200 otherwise |
+| POST /harvest/create | `set=partial|full endpoint=solr_url` | Start a harvest at the given endpoint, returns 202 if job accepted, 503 if a job is already in progress, 400 if params are incorrect |
+| POST /harvest/stop | | Stops the current harvest job, returns 204 if successful |
+
 There are two harvest modes, `full` and `partial`. `full` will update all articles and books within the given index, `partial` will only update those with a UNDETERMINED status and those that come from SFX. It is envisioned that `full` should be run infrequently as the non-SFX documents are unlikely to change regularly. `partial` should be run on a daily or weekly basis so that new documents are enriched and changes to SFX licenses are reflected promptly in the index.
 
 ## Helpers
@@ -41,7 +41,7 @@ To assist in debugging article access decisions, there are a couple of helper me
 
 ## System Design
 
-The application uses the Elixir GenStage pattern. There are three stages, `HarvestStage`, `DeciderStage` and `UpdateStage`, each of which calls client code before handing its results to the next stage. Read the Elixir GenStage docs for more information about the pattern and the API.
+Enricher consists of a Plug based web interface and a number of GenServers to maintain state. The web interface can trigger a harvest job which is built using the Elixir GenStage pattern. There are three stages, `HarvestStage`, `DeciderStage` and `UpdateStage`, each of which calls client code before handing its results to the next stage. Read the [Elixir GenStage docs](https://hexdocs.pm/gen_stage/Experimental.GenStage.html) for more information about the pattern and the API. There is a HarvestManager server which maintains state about the current harvest and is accessed by many of the other components and a JournalCache server which maintains the cached SFX journal data.
 
 ## Concurrency
 
@@ -49,7 +49,7 @@ Of the three stages, only `HarvestStage` cannot be run concurrently. This is bec
 
 ## Caching
 
-To cut down on the number of HTTP requests, we begin the Enrichment process by retrieving all journals that come from SFX and storing them in memory using [Erlang Term Storage](http://elixir-lang.org/getting-started/mix-otp/ets.html). This table will be dropped upon conclusion of the harvest method. 
+To cut down on the number of HTTP requests, we begin the Enrichment process by retrieving all journals that come from SFX and storing them in memory using [Erlang Term Storage](http://elixir-lang.org/getting-started/mix-otp/ets.html). This cache is regenerated at the beginning of each harvest.
 
 ## Improvements
 
@@ -62,6 +62,7 @@ The application is not perfect, here are a number of potential areas for improve
   -  ~~At present, we use GenStage defaults (between 500 and 1000) for determining Solr query size and we commit updates after each batch. It may be appropriate to configure a larger batch size.~~
   -  GenStage Flow might be a more suitable design pattern.
   - We need to get a handle on release and deploy packaging.
+  -  Provide information on batch size and estimated time of completion through the web interface.
 
 ## Build
 

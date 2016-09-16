@@ -7,6 +7,7 @@ defmodule Enricher.HarvestManager do
   """
   use GenServer
   require Logger
+  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher.HarvestManager)
 
   ## Client API ##
 
@@ -32,6 +33,10 @@ defmodule Enricher.HarvestManager do
   
   def update_count(pid, increment) do
     GenServer.call(pid, {:update_count, increment})
+  end
+
+  def update_status(pid, new_status) do
+    GenServer.call(pid, {:update_status, new_status})
   end
 
   def start_harvest(pid, mode, endpoint) do
@@ -60,6 +65,11 @@ defmodule Enricher.HarvestManager do
     {:reply, :ok, updated_status}
   end
 
+  def handle_call({:update_status, new_status}, _from, status) do
+    updated_status = status |> Map.merge(new_status)
+    {:reply, :ok, updated_status}
+  end
+
   def handle_call({:update_count, increment}, _from, status) do
     new_count = Map.get(status, :docs_processed) + increment
     updated_status = status |> Map.merge(%{docs_processed: new_count})
@@ -67,13 +77,19 @@ defmodule Enricher.HarvestManager do
   end
   
   def handle_call({:start_harvest, mode, endpoint}, _from, status) do
-    Logger.info "Starting #{mode} harvest..."
-    ref = Task.async(fn -> Enricher.start_harvest(mode) end)
-    updated_status = status |> Map.merge(%{
-      start_time: DateTime.utc_now, in_progress: true, endpoint: endpoint, 
-      mode: mode, reference: ref
-    })
-    {:reply, :ok, updated_status}
+    case Map.get(status, :in_progress) do
+      true ->
+        Logger.error "Cannot start harvest - harvest already in progress"
+        {:reply, :error, status}
+      false ->
+        Logger.info "Starting #{mode} harvest..."
+        ref = Task.async(fn -> @harvest_module.start_harvest(mode) end)
+        updated_status = status |> Map.merge(%{
+          start_time: DateTime.utc_now, in_progress: true, endpoint: endpoint, 
+          mode: mode, reference: ref
+        })
+        {:reply, :ok, updated_status}
+    end
   end
 
   def handle_call(:harvest_complete, _from, status) do
