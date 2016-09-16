@@ -7,7 +7,8 @@ defmodule Enricher.HarvestManager do
   """
   use GenServer
   require Logger
-  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher.HarvestManager)
+  # Allows injection of a dummy module for unit tests
+  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher)
 
   ## Client API ##
 
@@ -98,14 +99,19 @@ defmodule Enricher.HarvestManager do
   end
 
   @doc """
-  Handle stop message from Harvest Task
+  Handle stop message from Harvest Task.
+  If reference matches current Harvest job,
+  update the status.
   """
   def handle_info({:DOWN, ref, :process, _pid, reason}, status) do
     Logger.info "Received DOWN message for process #{inspect ref} with reason #{reason}"
-    if ref == status.reference do
-      status = status |> Map.merge(%{in_progress: false})
-    end
-    {:noreply, status}
+    updated_status = 
+      cond do
+        ref == status.reference ->
+          Map.merge(status, %{in_progress: false})
+        :else -> status 
+      end
+    {:noreply, updated_status}
   end
 
   def handle_info(_msg, state), do: {:noreply, state}

@@ -12,7 +12,8 @@ defmodule WebTest do
   end
 
   defp harvest_in_progress(_) do
-    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000})
+    fake_task = Task.async(fn -> 1 + 1 end)
+    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000, reference: fake_task})
   end
   defp harvest_not_in_progress(_) do
     Enricher.HarvestManager.update_status(Manager, %{in_progress: false})
@@ -30,6 +31,11 @@ defmodule WebTest do
       conn = Enricher.Web.call(conn, @opts)
       assert conn.state == :sent
       assert conn.status == 503 
+    end
+    test "/stop stops the harvest" do
+      conn = conn(:post, "/harvest/stop") |> Enricher.Web.call(@opts)
+      assert conn.state == :sent
+      assert conn.status == 204
     end
   end
   describe "when harvest is not in progress" do
@@ -49,13 +55,6 @@ defmodule WebTest do
       conn = conn(:post, "/harvest/create", %{"set" => "fudgemuffin"}) |> Enricher.Web.call(@opts)
       assert conn.state == :sent
       assert conn.status == 400
-    end
-  end
-  describe "/stop" do
-    test "it stops the harvest" do
-      conn = conn(:post, "/harvest/stop") |> Enricher.Web.call(@opts)
-      assert conn.state == :sent
-      assert conn.status == 204
     end
   end
 end

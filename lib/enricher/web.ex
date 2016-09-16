@@ -6,7 +6,6 @@ defmodule Enricher.Web do
   require Logger
   plug :match
   plug :dispatch
-  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher.HarvestManager)
 
   post "/harvest/create" do
     case conn.params do
@@ -29,7 +28,7 @@ defmodule Enricher.Web do
   end
 
   post "/harvest/stop" do
-    @harvest_module.stop_harvest(Manager)
+    Enricher.HarvestManager.stop_harvest(Manager)
     send_resp(conn, 204, "")
   end
 
