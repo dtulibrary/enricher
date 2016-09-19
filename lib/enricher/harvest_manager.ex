@@ -85,11 +85,14 @@ defmodule Enricher.HarvestManager do
       false ->
         Logger.info "Starting #{mode} harvest..."
         ref = Task.async(fn -> @harvest_module.start_harvest(mode) end)
-        updated_status = status |> Map.merge(%{
-          start_time: DateTime.utc_now, in_progress: true, endpoint: endpoint, 
-          mode: mode, reference: ref
+        status = Enricher.Status.new(%{
+          start_time: DateTime.utc_now,
+          in_progress: true,
+          endpoint: endpoint, 
+          mode: mode,
+          reference: ref
         })
-        {:reply, :ok, updated_status}
+        {:reply, :ok, status}
     end
   end
 

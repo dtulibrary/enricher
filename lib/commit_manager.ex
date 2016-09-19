@@ -11,8 +11,8 @@ defmodule CommitManager do
   @buffer_size 5000000
   @updater Application.get_env(:enricher, :metastore_updater, MetastoreUpdater)
 
-  def start_link do
-    GenServer.start_link(__MODULE__, 0) 
+  def start_link(name \\ nil) do
+    GenServer.start_link(__MODULE__, 0, [name: name]) 
   end
 
   def update(pid, number) do

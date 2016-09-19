@@ -13,23 +13,23 @@ defmodule Enricher do
     children = [
       worker(Enricher.HarvestManager, [Manager]),
       worker(JournalCache, [Cache]),
+      worker(CommitManager, [CommitManager]),
       Plug.Adapters.Cowboy.child_spec(:http, Enricher.Web, [], [port: 4001])
     ]
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
   end
 
   def start_harvest(mode) do
-    {:ok, commit_manager} = CommitManager.start_link
     JournalCache.load_journals(Cache)
     {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
     {:ok, decider1} = GenStage.start_link(DeciderStage, Cache)
     {:ok, decider2} = GenStage.start_link(DeciderStage, Cache)
     {:ok, decider3} = GenStage.start_link(DeciderStage, Cache)
     {:ok, decider4} = GenStage.start_link(DeciderStage, Cache)
-    {:ok, update1} = GenStage.start_link(UpdateStage, commit_manager)
-    {:ok, update2} = GenStage.start_link(UpdateStage, commit_manager)
-    {:ok, update3} = GenStage.start_link(UpdateStage, commit_manager)
-    {:ok, update4} = GenStage.start_link(UpdateStage, commit_manager)
+    {:ok, update1} = GenStage.start_link(UpdateStage, CommitManager)
+    {:ok, update2} = GenStage.start_link(UpdateStage, CommitManager)
+    {:ok, update3} = GenStage.start_link(UpdateStage, CommitManager)
+    {:ok, update4} = GenStage.start_link(UpdateStage, CommitManager)
     GenStage.sync_subscribe(update1, to: decider1, min_demand: @min, max_demand: @max)
     GenStage.sync_subscribe(update2, to: decider2, min_demand: @min, max_demand: @max)
     GenStage.sync_subscribe(update3, to: decider3, min_demand: @min, max_demand: @max)
