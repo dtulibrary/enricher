@@ -50,7 +50,8 @@ defmodule SolrClient do
     decoded = query_string |> @fetcher.get |> decode 
     docs = cast_to_docs(decoded) 
     next_cursor = parse_cursor(decoded, cursor_mark)
-    {docs, next_cursor}
+    batch_size = batch_size(decoded)
+    {docs, next_cursor, batch_size}
   end
 
   def fetch_article(id) do
@@ -79,6 +80,10 @@ defmodule SolrClient do
       ^current_cursor -> nil
       x -> x
     end
+  end
+
+  def batch_size(response) do
+    response |> Map.get("response") |> Map.get("numFound")
   end
 
   def fetch_journal(_identifier, nil), do: nil

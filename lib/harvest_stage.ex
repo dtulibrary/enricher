@@ -29,8 +29,8 @@ defmodule HarvestStage do
 
   def process(demand, harvest_function, {mode, cursor, subscribers}) do
     Logger.debug "Processing #{mode}.."
-    {docs, new_cursor} = harvest_function.(demand, cursor)
-    Logger.debug "new cursor is #{new_cursor}"
+    {docs, new_cursor, batch_size} = harvest_function.(demand, cursor)
+    Enricher.HarvestManager.update_batch_size(Manager, batch_size)
     if is_nil(new_cursor) do
       Logger.info "No more docs, messaging subscribers"
       Enricher.HarvestManager.harvest_complete(Manager)

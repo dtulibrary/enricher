@@ -15,16 +15,16 @@
     <td><%= status.docs_processed %></td>
   </tr>
   <tr>
+    <td>Batch size</td>
+    <td><%= status.batch_size %></td>
+  </tr>
+  <tr>
     <td>Start time</td>
-    <td><%= DateTime.to_iso8601(status.start_time) %></td>
+    <td><%= Enricher.Status.format_time(status.start_time) %></td>
   </tr>
   <tr>
     <td>End time</td>
-    <td>
-    <%= if status.end_time do %>
-      <%= DateTime.to_iso8601(status.end_time) %>
-    <% end %>
-    </td>
+    <td><%= Enricher.Status.format_time(status.end_time) %></td>
   </tr>
   <tr>
     <td>Throughput</td>

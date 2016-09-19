@@ -37,6 +37,12 @@ defmodule HarvestManagerTest do
       assert Enricher.HarvestManager.status(manager) |> Map.get(:in_progress) == true 
     end
   end
+  describe "update_batch_size" do
+    test "updates the batch size", %{manager: manager} do
+      Enricher.HarvestManager.update_batch_size(manager, "5000") 
+      assert Enricher.HarvestManager.status(manager) |> Map.get(:batch_size) == "5000" 
+    end
+  end
   describe "supervision" do
     test "it can be started with a name by a supervisor" do
       import Supervisor.Spec

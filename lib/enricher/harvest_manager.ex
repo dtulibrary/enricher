@@ -36,6 +36,11 @@ defmodule Enricher.HarvestManager do
     GenServer.call(pid, {:update_count, increment})
   end
 
+  def update_batch_size(pid, batch_size) do
+    new_status = status(pid) |> Map.merge(%{batch_size: batch_size})
+    update_status(pid, new_status)
+  end
+
   def update_status(pid, new_status) do
     GenServer.call(pid, {:update_status, new_status})
   end

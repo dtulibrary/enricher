@@ -3,18 +3,14 @@ defmodule UpdateStage do
   use GenStage
   require Logger
 
-  def init(commit_manager) do
-    {:consumer, commit_manager}
+  def init(_args) do
+    {:consumer, []}
   end
 
-  def handle_events(updates, _from, commit_manager) do
-    Logger.info "handling update events"
+  def handle_events(updates, _from, []) do
     MetastoreUpdater.update_docs(updates)
-    # Inform commit manager of number of updates 
-    count = Enum.count(updates)
-    Enricher.HarvestManager.update_count(Manager, count)
-    CommitManager.update(commit_manager, count)
-    {:noreply, [], commit_manager}
+    Enricher.HarvestManager.update_count(Manager, Enum.count(updates))
+    {:noreply, [], []}
   end
   
   def handle_info({{prev, _sub}, :nomoredocs}, _state) do
