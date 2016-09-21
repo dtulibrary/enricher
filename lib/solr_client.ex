@@ -82,9 +82,9 @@ defmodule SolrClient do
     end
   end
 
-  def batch_size(response) do
-    response |> Map.get("response") |> Map.get("numFound")
-  end
+  def batch_size(%{"response" => %{"numFound" => size}}), do: size
+
+  def batch_size(_), do: 0
 
   def fetch_journal(_identifier, nil), do: nil
 

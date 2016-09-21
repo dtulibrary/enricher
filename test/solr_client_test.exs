@@ -35,9 +35,17 @@ defmodule SolrClientTest do
     response = Poison.decode! @valid_response
     assert is_list(SolrClient.get_docs(response))
   end
-  test "batch_size" do
-    response = Poison.decode! @valid_response
-    assert SolrClient.batch_size(response) == 4200
+  describe "batch_size\1" do
+    test "with a valid Solr response" do
+      response = Poison.decode! @valid_response
+      assert SolrClient.batch_size(response) == 4200
+    end
+    test "with a nil response" do
+      assert SolrClient.batch_size(nil) == 0
+    end
+    test "with an empty response" do
+      assert SolrClient.batch_size(%{}) == 0
+    end
   end
 end
 
