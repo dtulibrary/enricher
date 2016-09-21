@@ -51,8 +51,25 @@ defmodule JournalCache do
   ## Server API ##
 
   def init(_args) do
-    cache = :ets.new(:journals, [:ordered_set])
+    cache = create_ets
     {:ok, cache}
+  end
+
+  @doc """
+  Allow the ets to be created as part of the startup 
+  or externally by a parent process.
+  Creating it externally means that it will not be garbage
+  collected if the cache process dies, thus meaning it will
+  persist across restarts.
+  """
+  def create_ets(name \\ :journals) do
+    try do
+      :ets.new(name, [:ordered_set, :named_table, :public])
+    rescue
+      ArgumentError -> 
+        Logger.info "ETS already exists!"
+        name
+    end
   end
 
   def handle_call({:load, journals}, _from, cache) do

@@ -10,6 +10,7 @@ defmodule Enricher do
   def start(_type, _args) do
     import Supervisor.Spec
     Logger.info "Initialising Enricher"
+    JournalCache.create_ets
     children = [
       worker(Enricher.HarvestManager, [Manager]),
       worker(JournalCache, [Cache]),
