@@ -4,7 +4,7 @@ config :logger,
 
 config :logger, :debug_log,
    path: "log/debug.log",
-   format: "$time $level $metadata $levelpad$message\n",
+   format: "$date $time $level $metadata $levelpad$message\n",
    metadata: [:module, :line],
    level: :debug
 
