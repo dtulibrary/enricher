@@ -11,3 +11,4 @@ config :logger, :prod_log,
    format: "$date $time $level $metadata $levelpad$message\n",
    metadata: [:module, :line],
    level: :info
+
