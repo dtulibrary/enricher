@@ -27,8 +27,8 @@
     <td><%= Enricher.Status.format_time(status.end_time) %></td>
   </tr>
   <tr>
-    <td>Throughput</td>
-    <td><%= Enricher.Status.throughput(status) %> per second</td>
+    <td>Docs per second</td>
+    <td><%= Enricher.Status.throughput(status) %></td>
   </tr>
   <tr>
     <td>Message</td>
