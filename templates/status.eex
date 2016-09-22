@@ -1,4 +1,5 @@
 <table>
+  <tr>
     <td>Endpoint</td>
     <td><%= status.endpoint %></td>
   </tr>
@@ -31,7 +32,7 @@
     <td><%= Enricher.Status.throughput(status) %></td>
   </tr>
   <tr>
-    <td>Message</td>
+    <td>Last message</td>
     <td><%= message %></td>
   </tr>
 </table>
