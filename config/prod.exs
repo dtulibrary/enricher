@@ -3,7 +3,7 @@ use Mix.Config
 config :logger,
   backends: [
     {LoggerFileBackend, :prod_log},
-    {Enricher.WebLogger, :console_log}
+    {Enricher.WebLogger, :console}
   ]
 
 config :logger, :prod_log,

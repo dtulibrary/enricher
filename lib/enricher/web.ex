@@ -1,7 +1,6 @@
 defmodule Enricher.Web do
   use Plug.Router
 
-  plug Plug.Logger
   plug Plug.Parsers, parsers: [:urlencoded, :multipart]
   require Logger
   plug :match
