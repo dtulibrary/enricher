@@ -39,10 +39,19 @@ defmodule Enricher.Web do
         true -> 202
         false -> 200
       end
-    page = EEx.eval_file("templates/status.eex", [status: status])
+    message = Enricher.LogServer.last_message(WebLogger) 
+    page = EEx.eval_file("templates/status.eex", [status: status, message: message])
     conn 
     |> put_resp_content_type("text/html")
     |> send_resp(status_code, page)
+  end
+
+  get "/harvest/log" do
+    messages = Enricher.LogServer.messages(WebLogger)
+    page = EEx.eval_file("templates/log.eex", [messages: messages])
+    conn 
+    |> put_resp_content_type("text/html")
+    |> send_resp(200, page)
   end
 
   match _ do

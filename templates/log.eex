@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Harvest Log</h1>
+    <ul>
+      <%= for msg <- messages do %>
+        <li><%= msg %></li>
+    <% end %>
+    </ul>
+  <a href="status">See status</a>
+  </body>
+</html>

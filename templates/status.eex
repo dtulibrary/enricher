@@ -30,4 +30,9 @@
     <td>Throughput</td>
     <td><%= Enricher.Status.throughput(status) %> per second</td>
   </tr>
+  <tr>
+    <td>Message</td>
+    <td><%= message %></td>
+  </tr>
 </table>
+<a href="log">See log</a>

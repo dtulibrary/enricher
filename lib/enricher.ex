@@ -14,12 +14,14 @@ defmodule Enricher do
     children = [
       worker(Enricher.HarvestManager, [Manager]),
       worker(JournalCache, [Cache]),
+      worker(Enricher.LogServer, [WebLogger]),
       Plug.Adapters.Cowboy.child_spec(:http, Enricher.Web, [], [port: 4001])
     ]
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
   end
 
   def start_harvest(mode) do
+    Enricher.LogServer.flush_log(WebLogger)
     JournalCache.load_journals(Cache)
     {:ok, harvest} = GenStage.start_link(HarvestStage, mode)
     {:ok, decider1} = GenStage.start_link(DeciderStage, Cache)

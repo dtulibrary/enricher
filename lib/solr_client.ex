@@ -145,8 +145,8 @@ defmodule SolrClient do
     def metastore_solr, do: Enricher.HarvestManager.search_endpoint(Manager)
 
     def get(query_string, retries \\ 0)
-    def get(query_string, 3) do
-      Logger.error "Query timed out 3 times! Exiting..."
+    def get(query_string, 10) do
+      Logger.error "Query timed out 10 times! Exiting..."
       Logger.error query_string
       :shutdown
     end

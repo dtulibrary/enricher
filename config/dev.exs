@@ -1,6 +1,9 @@
 use Mix.Config
 config :logger,
-  backends: [{LoggerFileBackend, :debug_log}]
+  backends: [
+    {LoggerFileBackend, :debug_log},
+    {Enricher.WebLogger, :console_log}
+  ]
 
 config :logger, :debug_log,
    path: "log/debug.log",

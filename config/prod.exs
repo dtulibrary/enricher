@@ -1,7 +1,10 @@
 use Mix.Config
 
 config :logger,
-  backends: [{LoggerFileBackend, :prod_log}]
+  backends: [
+    {LoggerFileBackend, :prod_log},
+    {Enricher.WebLogger, :console_log}
+  ]
 
 config :logger, :prod_log,
    path: "log/production.log",
