@@ -1,10 +1,19 @@
 defmodule LogServerTest do
   use ExUnit.Case, async: true
 
-  test "it starts up and can receive logs" do
-    {:ok, pid} = Enricher.LogServer.start_link
-    Enricher.LogServer.log(pid, "bla bla")
-    assert Enricher.LogServer.messages(pid) == ["bla bla"]
+  describe "log\2" do
+    setup [:start_server]
+    test "when there are no messages", %{server: pid} do
+      Enricher.LogServer.log(pid, "bla bla")
+      assert Enricher.LogServer.messages(pid) == ["bla bla"]
+    end
+    test "it does not store more than 50 messages", %{server: pid} do
+      for i <- 1..100 do
+        Enricher.LogServer.log(pid, "message#{i}")
+      end
+      assert length(Enricher.LogServer.messages(pid)) == 50
+      assert Enricher.LogServer.last_message(pid) == "message100"
+    end
   end
   describe "last message" do
     setup [:start_server]

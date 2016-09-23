@@ -29,8 +29,12 @@ defmodule Enricher.LogServer do
     {:ok, []}
   end
 
-  def handle_call({:log, msg}, _from, messages) do
+  def handle_call({:log, msg}, _from, messages) when length(messages) < 50 do
     {:reply, :ok, [msg] ++ messages}
+  end
+
+  def handle_call({:log, msg}, _from, messages) when length(messages) >= 50 do
+    {:reply, :ok, [msg] ++ Enum.drop(messages, -1)}
   end
 
   def handle_call(:messages, _from, messages) do
