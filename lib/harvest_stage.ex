@@ -14,21 +14,19 @@ defmodule HarvestStage do
   @init_cursor "*"
   @doc "mode can be :full or :partial"
   def init(mode, subscribers \\ []) do
-    Logger.info "Commencing full harvest"
+    Logger.info "Commencing #{mode} harvest"
     {:producer, {mode, @init_cursor, subscribers}}
   end
 
-  def handle_demand(demand, state) when demand > 0 do
-    process(demand, &SolrClient.full_update/2, state)
+  def handle_demand(demand, {:full, cursor, subscribers}) when demand > 0 do
+    process(demand, &SolrClient.full_update/2, {:full, cursor, subscribers})
   end
   
-  def handle_demand(demand, state) when demand > 0 do
-    Logger.debug "Receiving demand #{demand}"
-    process(demand, &SolrClient.partial_update/2, state)
+  def handle_demand(demand, {:partial, cursor, subscribers}) when demand > 0 do
+    process(demand, &SolrClient.partial_update/2, {:partial, cursor, subscribers})
   end
 
   def process(demand, harvest_function, {mode, cursor, subscribers}) do
-    Logger.debug "Processing #{mode}.."
     {docs, new_cursor, batch_size} = harvest_function.(demand, cursor)
     Enricher.HarvestManager.update_batch_size(Manager, batch_size)
     if is_nil(new_cursor) do
