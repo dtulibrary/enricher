@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debug article - <%= id %></title>
+    <%= EEx.eval_file("templates/common_style.html") %>
+  </head>
+  <body>
+    <h1>Debug article</h1>
+    <ul>
+      <li>Cluster id ss: <%= id %> </li>
+      <li>Endpoint: <%= endpoint %> </li>
+      <li>Journal Cache updated: <%= JournalCache.last_updated(Cache) %> </li>
+    </ul>
+    <h2>Article</h2>
+    <code>
+      <%= inspect article %>
+    </code>
+    <h2>Journal</h2>
+    <code>
+      <%= inspect journal %>
+    </code>
+    <h2>Access</h2>
+    <code>
+      <%= inspect access %>
+    </code>
+  </body>
+</html>

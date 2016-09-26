@@ -21,6 +21,12 @@ defmodule JournalCache do
     GenServer.call(pid, {:load, journals}, 120000)
   end
 
+  def load_journals(pid, endpoint) do
+    Logger.info "Loading journals"
+    journals = SolrClient.all_journals(endpoint)
+    GenServer.call(pid, {:load, journals}, 120000)
+  end
+
   @doc """
   Fetch journals from ETS if they are present
   Otherwise, return an empty %SolrJournal{}
@@ -35,6 +41,10 @@ defmodule JournalCache do
   """
   def insert_journal(pid, journal) do
     GenServer.call(pid, {:insert, journal})
+  end
+
+  def last_updated(pid) do
+    GenServer.call(pid, :last_updated)
   end
 
   @doc """
@@ -52,7 +62,7 @@ defmodule JournalCache do
 
   def init(_args) do
     cache = create_ets
-    {:ok, cache}
+    {:ok, {cache, nil}}
   end
 
   @doc """
@@ -72,22 +82,26 @@ defmodule JournalCache do
     end
   end
 
-  def handle_call({:load, journals}, _from, cache) do
+  def handle_call({:load, journals}, _from, {cache, timestamp}) do
     journals |> Enum.each(&insert(cache, &1))
-    {:reply, :ok, cache}
+    {:reply, :ok, {cache, DateTime.utc_now}}
   end
 
-  def handle_call({:insert, journal}, _from, cache) do
+  def handle_call({:insert, journal}, _from, {cache, timestamp}) do
     insert(cache, journal)
-    {:reply, :ok, cache}
+    {:reply, :ok, {cache, timestamp}}
   end
 
-  def handle_call({:fetch, identifier}, _from, cache) do
+  def handle_call({:fetch, identifier}, _from, {cache, timestamp}) do
     journal = case :ets.lookup(cache, identifier) do
       [{_id, j}|_] -> j
       [] -> %SolrJournal{}
     end
-    {:reply, journal, cache}
+    {:reply, journal, {cache, timestamp}}
+  end
+
+  def handle_call(:last_updated, _from, {cache, timestamp}) do
+    {:reply, timestamp, {cache, timestamp}}
   end
 
   defp insert(cache, journal) do

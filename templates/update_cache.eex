@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Update Journal Cache</title>
+    <%= EEx.eval_file("templates/common_style.html") %>
+  </head>
+  <body>
+    <h1>Update Journal Cache</h1>
+    <form action="/cache/update" method="POST">
+      <fieldset>
+        <legend>Enter the Metastore URL to update the cache from</legend>
+        <label for="endpoint">Endpoint</label>
+        <input id="endpoint" type="url" name="endpoint"/>
+        <button type="submit">Update</button>
+      </fieldset>
+    </form>
+  </body>
+</html>

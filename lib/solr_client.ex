@@ -54,19 +54,27 @@ defmodule SolrClient do
     {docs, next_cursor, batch_size}
   end
 
-  def fetch_article(id) do
+  def fetch_article(id, url) do
     %{"q" => "cluster_id_ss:#{id}", "wt" => "json"} 
     |> URI.encode_query
-    |> @fetcher.get
+    |> @fetcher.simple_get(url)
     |> decode
     |> cast_to_docs
-    |> hd
+    |> first
   end
 
   def all_journals do
     @all_journals_params 
     |> URI.encode_query 
     |> @fetcher.get 
+    |> decode
+    |> cast_to_journals
+  end
+  
+  def all_journals(url) do
+    @all_journals_params 
+    |> URI.encode_query 
+    |> @fetcher.simple_get(url) 
     |> decode
     |> cast_to_journals
   end
@@ -162,6 +170,17 @@ defmodule SolrClient do
            get(query_string, retries + 1)
       end
     end
+
+    @doc """
+    Allows us to make a query with a specified endpoint
+    rather than using the endpoint stored in the 
+    HarvestManager's state.
+    Useful for debugging.
+    """
+    def simple_get(query_string, endpoint) do
+      url = "#{endpoint}/solr/metastore/toshokan?#{query_string}"
+      HTTPoison.get!(url) |> Map.get(:body)
+    end
   end
 
   defmodule TestFetcher do
@@ -186,6 +205,8 @@ defmodule SolrClient do
           "{}"
       end
     end
+
+    def simple_get(_,_), do: @all_articles_response
 
     def journal_response, do: @journal_response
     def all_articles_response, do: @all_articles_response

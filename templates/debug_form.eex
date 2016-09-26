@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debug article</title>
+    <%= EEx.eval_file("templates/common_style.html") %>
+  </head>
+  <body>
+    <h1>Debug article</h1>
+    <ul>
+      <li>Journal Cache updated: <%= JournalCache.last_updated(Cache) %> </li>
+    </ul>
+    <a href="/cache/update">Update Journal Cache</a>
+    <form action="/debug/article">
+      <fieldset>
+        <legend>
+          Enter article id and endpoint below to get detailed access to debug information.
+        </legend>
+        <label for="id">Cluster id</label>
+        <input name="id" id="id"/>
+        <label type="url" for="endpoint">Endpoint</label>
+        <input name="endpoint" id="endpoint"/>
+        <button formmethod="GET" formenctype="text/plain" type="submit">Debug</button>
+      </fieldset>
+    </form>
+  </body>
+</html>
