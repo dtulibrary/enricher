@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Harvest Log</title>
+    <%= EEx.eval_file("templates/common_style.html") %>
+  </head>
   <body>
     <h1>Harvest Log</h1>
     <ul>

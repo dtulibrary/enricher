@@ -112,7 +112,7 @@ defmodule Enricher.HarvestManager do
   update the status.
   """
   def handle_info({:DOWN, ref, :process, _pid, reason}, status) do
-    Logger.info "Received DOWN message for process #{inspect ref} with reason #{reason}"
+    Logger.debug "Received DOWN message for process #{inspect ref} with reason #{reason}"
     updated_status = 
       cond do
         ref == status.reference ->

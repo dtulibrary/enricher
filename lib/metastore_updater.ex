@@ -9,7 +9,7 @@ defmodule MetastoreUpdater do
   def send_updates(updates) when is_list(updates) do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
-    Logger.info "Sending updates"
+    Logger.debug "Sending updates"
     HTTPoison.post!(update_url, body, headers, stream_to: self)
   end
 
@@ -22,7 +22,7 @@ defmodule MetastoreUpdater do
 
   @doc "Commit updates to Solr asynchronously"
   def commit_updates do
-    Logger.info "Committing updates"
+    Logger.debug "Committing updates"
     update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
   end
 
