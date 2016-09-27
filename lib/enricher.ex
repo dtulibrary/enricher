@@ -9,7 +9,6 @@ defmodule Enricher do
 
   def start(_type, _args) do
     import Supervisor.Spec
-    Logger.info "Initialising Enricher"
     JournalCache.create_ets
     children = [
       worker(Enricher.HarvestManager, [Manager]),
@@ -17,7 +16,9 @@ defmodule Enricher do
       worker(Enricher.LogServer, [WebLogger]),
       Plug.Adapters.Cowboy.child_spec(:http, Enricher.Web, [], [port: 4001])
     ]
-    {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
+    {:ok, pid} = Supervisor.start_link(children, strategy: :one_for_one)
+    Logger.info "Enricher initialised..."
+    {:ok, pid} 
   end
 
   def start_harvest(mode) do
