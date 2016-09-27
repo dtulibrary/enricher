@@ -28,6 +28,16 @@ defmodule JournalCacheTest do
     test "when the journal is not cached", %{pid: pid} do
       assert %SolrJournal{} == JournalCache.journal_for_article(pid, %SolrDoc{issn_ss: ["5438763"]})
     end
+    test "when the doc has an eissn", %{pid: pid, journal: journal} do
+      JournalCache.insert_journal(pid, journal)
+      article = %SolrDoc{eissn_ss: ["98765432"]}
+      assert journal == JournalCache.journal_for_article(pid, article)
+    end
+    test "when the doc has multiple identifiers", %{pid: pid, journal: journal} do
+      JournalCache.insert_journal(pid, journal)
+      article = %SolrDoc{issn_ss: ["5674829","12345678"]}
+      assert journal == JournalCache.journal_for_article(pid, article)
+    end
   end
   describe "when setup as part of a supervision tree" do
     setup [:start_with_supervisor]

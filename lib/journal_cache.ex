@@ -54,8 +54,8 @@ defmodule JournalCache do
   Else, retrieve an empty %SolrJournal{}
   """
   def journal_for_article(pid, article) do
-    {identifier, value} = SolrDoc.identifier(article)
-    JournalCache.fetch_journal(pid, "#{identifier}:#{value}")
+    identifiers = SolrDoc.all_identifiers(article) |> Enum.map(fn {x,y} -> "#{x}:#{y}" end)
+    JournalCache.fetch_journal(pid, identifiers)
   end
 
   ## Server API ##
@@ -92,12 +92,31 @@ defmodule JournalCache do
     {:reply, :ok, {cache, timestamp}}
   end
 
-  def handle_call({:fetch, identifier}, _from, {cache, timestamp}) do
-    journal = case :ets.lookup(cache, identifier) do
-      [{_id, j}|_] -> j
+  def handle_call({:fetch, identifiers}, _from, {cache, timestamp}) when is_list(identifiers) do
+    journal = case fetch_all(identifiers, cache) do
       [] -> %SolrJournal{}
+      [h|_] -> h
     end
     {:reply, journal, {cache, timestamp}}
+  end
+
+  def handle_call({:fetch, identifier}, _from, {cache, timestamp}) do
+    journal = case fetch_from_ets(cache, identifier) do
+      nil -> %SolrJournal{}
+      journal -> journal
+    end
+    {:reply, journal, {cache, timestamp}}
+  end
+
+  defp fetch_all(identifiers, cache) do
+    identifiers |> Enum.map(&fetch_from_ets(cache, &1)) |> Enum.reject(&is_nil(&1)) 
+  end
+
+  defp fetch_from_ets(cache, identifier) do
+    case :ets.lookup(cache, identifier) do
+      [{_id, j}|_] -> j
+      [] -> nil
+    end
   end
 
   def handle_call(:last_updated, _from, {cache, timestamp}) do

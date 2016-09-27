@@ -2,7 +2,7 @@ defmodule SolrDoc do
 
   defstruct [
     :author_ts, :title_ts, :journal_title_ts,  :issn_ss,
-    :pub_date_tis, :journal_vol_ssf, :journal_page_ssf,
+    :eissn_ss, :pub_date_tis, :journal_vol_ssf, :journal_page_ssf,
     :doi_ss, :publisher_ts, :publication_place_ts,
     :cluster_id_ss, :format, :holdings_ssf, :isbn_ss,
     :journal_issue_ssf, :fulltext_list_ssf, :id, :source_ss
@@ -61,6 +61,28 @@ defmodule SolrDoc do
   defp first_identifier(data) do
     Map.keys(data)
     |> Enum.find(&(Enum.member?(@identifiers, &1)))
+  end
+
+  @doc """
+  Returns all identifiers from a document
+
+  ## Examples
+
+      iex> SolrDoc.all_identifiers(%SolrDoc{issn_ss: [12345678, 87654321]})
+      [{"issn_ss", "12345678"}, {"issn_ss", "87654321"}]
+
+  """
+  def all_identifiers(solr_doc) do
+    get_tup = fn(ident, map) ->
+      case Map.fetch(map, ident) do
+        {:ok, values} when is_list(values) -> 
+          Enum.map(values, &{"#{ident}", &1})
+        {:ok, nil} -> [nil]
+        {:ok, value} -> [{"#{ident}", value}]
+        :error -> [nil]
+      end
+    end
+    @identifiers |> Enum.flat_map(&get_tup.(&1, solr_doc)) |> Enum.reject(&is_nil/1)
   end
 
   def data(sd) do

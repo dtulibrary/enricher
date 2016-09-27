@@ -13,7 +13,7 @@ defmodule WebTest do
 
   defp harvest_in_progress(_) do
     fake_task = Task.async(fn -> 1 + 1 end)
-    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000, reference: fake_task})
+    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000, reference: fake_task, start_time: DateTime.utc_now})
   end
   defp harvest_not_in_progress(_) do
     Enricher.HarvestManager.update_status(Manager, %{in_progress: false})
@@ -55,6 +55,13 @@ defmodule WebTest do
       conn = conn(:post, "/harvest/create", %{"set" => "fudgemuffin"}) |> Enricher.Web.call(@opts)
       assert conn.state == :sent
       assert conn.status == 400
+    end
+  end
+  describe "/debug/article" do
+    test "it returns the access decision" do
+      conn = conn(:get, "/debug/article", %{"id" => "123456789", "endpoint" => "http://solr.test:8983"}) |> Enricher.Web.call(@opts)
+      assert conn.state == :sent
+      assert conn.status == 200
     end
   end
 end

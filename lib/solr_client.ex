@@ -179,7 +179,7 @@ defmodule SolrClient do
     """
     def simple_get(query_string, endpoint) do
       url = "#{endpoint}/solr/metastore/toshokan?#{query_string}"
-      HTTPoison.get!(url) |> Map.get(:body)
+      HTTPoison.get!(url, timeout: 240000, recv_timeout: 240000) |> Map.get(:body)
     end
   end
 

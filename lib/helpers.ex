@@ -9,17 +9,4 @@ defmodule Helpers do
     decision = AccessDecider.decide(article, Cache) 
     {article, journal, decision}
   end
-
-  @doc """
-  Given an article's cluster id 
-  update the relevant document in Solr.
-  """
-  def update_article(id) do
-    JournalCache.create_ets
-    update = SolrClient.fetch_article(id) |> AccessDecider.create_update(Cache)
-    [update] |> MetastoreUpdater.update_docs
-    MetastoreUpdater.commit_updates
-    IO.inspect update
-    update
-  end
 end

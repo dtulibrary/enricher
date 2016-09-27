@@ -1,5 +1,6 @@
 defmodule SolrDocTest do
   use ExUnit.Case, async: true
+  doctest SolrJournal
   setup do
     solr_article = %{
       "_version_" => 1535294313411379200,
@@ -81,6 +82,15 @@ defmodule SolrDocTest do
 
   test "identifier", %{article: article} do
     assert SolrDoc.identifier(article) == {"issn_ss", "16123174"}
+  end
+
+  describe "identifiers" do
+    test "multiple issns" do
+      assert SolrDoc.all_identifiers(%SolrDoc{issn_ss: ["12345678", "87654321"]}) == [{"issn_ss", "12345678"}, {"issn_ss", "87654321"}]
+    end
+    test "issns and eissn" do
+      assert SolrDoc.all_identifiers(%SolrDoc{issn_ss: ["12345678", "87654321"], eissn_ss: ["12344321"]}) == [{"issn_ss", "12345678"}, {"issn_ss", "87654321"}, {"eissn_ss", "12344321"}]
+    end
   end
 
   test "year" do
