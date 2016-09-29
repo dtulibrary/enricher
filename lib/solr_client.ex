@@ -12,7 +12,7 @@ defmodule SolrClient do
     "rows" => 10000
   }
   @partial_query_params %{
-    "q" => "fulltext_availability_ss:UNDETERMINED OR fulltext_info_ss:sfx",
+    "q" => "fulltext_availability_ss:UNDETERMINED OR fulltext_info_ss:sfx OR fulltext_info_ss:none",
     "fq" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
