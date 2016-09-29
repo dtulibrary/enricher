@@ -82,7 +82,7 @@ defmodule JournalCache do
     end
   end
 
-  def handle_call({:load, journals}, _from, {cache, timestamp}) do
+  def handle_call({:load, journals}, _from, {cache, _timestamp}) do
     journals |> Enum.each(&insert(cache, &1))
     {:reply, :ok, {cache, DateTime.utc_now}}
   end
@@ -108,6 +108,10 @@ defmodule JournalCache do
     {:reply, journal, {cache, timestamp}}
   end
 
+  def handle_call(:last_updated, _from, {cache, timestamp}) do
+    {:reply, timestamp, {cache, timestamp}}
+  end
+
   defp fetch_all(identifiers, cache) do
     identifiers |> Enum.map(&fetch_from_ets(cache, &1)) |> Enum.reject(&is_nil(&1)) 
   end
@@ -117,10 +121,6 @@ defmodule JournalCache do
       [{_id, j}|_] -> j
       [] -> nil
     end
-  end
-
-  def handle_call(:last_updated, _from, {cache, timestamp}) do
-    {:reply, timestamp, {cache, timestamp}}
   end
 
   defp insert(cache, journal) do

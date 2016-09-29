@@ -26,6 +26,14 @@ defmodule HarvestStage do
     process(demand, &SolrClient.partial_update/2, {:partial, cursor, subscribers})
   end
 
+  def handle_demand(demand, {:sfx, cursor, subscribers}) when demand > 0 do
+    process(demand, &SolrClient.sfx_update/2, {:sfx, cursor, subscribers})
+  end
+
+  def handle_demand(demand, {:no_access, cursor, subscribers}) when demand > 0 do
+    process(demand, &SolrClient.no_access_update/2, {:no_access, cursor, subscribers})
+  end
+
   def process(demand, harvest_function, {mode, cursor, subscribers}) do
     {docs, new_cursor, batch_size} = harvest_function.(demand, cursor)
     Enricher.HarvestManager.update_batch_size(Manager, batch_size)

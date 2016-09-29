@@ -64,6 +64,7 @@ defmodule Enricher.HarvestManager do
   def handle_call(:status, _from, status), do: {:reply, status, status}
 
   def handle_call(:stop_harvest, _from, status) do
+    Logger.warn "Stopping harvest..."
     if Process.alive?(status.reference.pid) do
       Task.shutdown(status.reference)
     end

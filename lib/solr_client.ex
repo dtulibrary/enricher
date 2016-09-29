@@ -4,22 +4,19 @@ defmodule SolrClient do
 
   @fetcher Application.get_env(:enricher, :solr_fetcher, SolrClient.Fetcher)
   @journal_defaults %{"q" => "*:*", "fq" => "format:journal", "wt" => "json"}
-  @full_query_params %{
-    "q" => "format:article OR format:book",
-    "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
-    "sort" => "id desc",
-    "rows" => 10000
-  }
-  @partial_query_params %{
-    "q" => "fulltext_availability_ss:UNDETERMINED OR fulltext_info_ss:sfx OR fulltext_info_ss:none",
+  @default_query_params %{
     "fq" => "format:article OR format:book",
     "wt" => "json",
     "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
     "sort" => "id desc",
     "rows" => 10000
-
   }
+
+  @full_query_params Map.merge(@default_query_params, %{"q" => "*:*"})
+  @partial_query_params Map.merge(@default_query_params, %{"q" => "fulltext_availability_ss:UNDETERMINED"})
+  @sfx_query_params Map.merge(@default_query_params, %{"q" => "fulltext_info_ss:sfx"})
+  @no_access_query_params Map.merge(@default_query_params, %{"q" => "fulltext_info_ss:none"})
+
   @all_journals_params %{
     "q" => "format:journal",
     "fq" => "source_ss:jnl_sfx",
@@ -34,6 +31,14 @@ defmodule SolrClient do
 
   def partial_update(number, cursor) do
     fetch_docs(@partial_query_params, number, cursor) 
+  end 
+
+  def sfx_update(number, cursor) do
+    fetch_docs(@sfx_query_params, number, cursor) 
+  end 
+
+  def no_access_update(number, cursor) do
+    fetch_docs(@no_access_query_params, number, cursor) 
   end 
 
   def make_query_string(default_params, rows, cursor_mark) do

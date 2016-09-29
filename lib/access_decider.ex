@@ -84,7 +84,7 @@ defmodule AccessDecider do
       Enum.member?(fulltext_types, "publisher") -> 
         [fulltext_access: @dtu_only, fulltext_info: "metastore"]  
       true ->
-        Logger.warn "Unknown fulltext type [#{Enum.join(fulltext_types, ", ")}] - doing nothing"
+        Logger.debug "Unknown fulltext type [#{Enum.join(fulltext_types, ", ")}] - doing nothing"
         nil
     end
   end

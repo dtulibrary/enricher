@@ -30,14 +30,16 @@ To run the application, run `mix run --no-halt`. This will launch a web interfac
 | Endpoint | Params | Description
 | --- |:----:| ----- |
 | GET /harvest/status | |  Gives information about the current job's progress, returns 202 if a job is in progress, 200 otherwise |
-| POST /harvest/create | `set=partial|full endpoint=solr_url` | Start a harvest at the given endpoint, returns 202 if job accepted, 503 if a job is already in progress, 400 if params are incorrect |
+| POST /harvest/create | `mode=partial|full|sfx|no_access endpoint=solr_url` | Start a harvest at the given endpoint, returns 202 if job accepted, 503 if a job is already in progress, 400 if params are incorrect |
 | POST /harvest/stop | | Stops the current harvest job, returns 204 if successful |
+| GET /debug/article | |  Debugging interface for access decisions |
+| GET /cache/update| |  Interface for updating the journal cache for use in debugging access decisions |
 
-There are two harvest modes, `full` and `partial`. `full` will update all articles and books within the given index, `partial` will only update those with a UNDETERMINED status and those that come from SFX. It is envisioned that `full` should be run infrequently as the non-SFX documents are unlikely to change regularly. `partial` should be run on a daily or weekly basis so that new documents are enriched and changes to SFX licenses are reflected promptly in the index.
+There are four harvest modes, `full`, `partial`, `sfx` and `no_access`. `full` will update all articles and books within the given index, `partial` will only update those with an `UNDETERMINED` status, `sfx` will update all documents which have `fulltext_info_ss:sfx`, i.e. those that have fulltext access through SFX, and `no_access` will update those documents with `fulltext_info_none`, i.e. those which have been assessed not to have accessible fulltext. It is envisioned that `full` should be run infrequently as the non-SFX documents are unlikely to change regularly, `partial` should be run on a daily basis so that new documents are enriched, `sfx` should be run on a weekly basis so that changes to SFX licenses are reflected in the index and `no_access` should be run manually in response to changes in Enricher logic which have implications for documents that have already been processed (e.g. addition of new availability sources).
 
-## Helpers
+## Debugging Access Decisions
 
-To assist in debugging article access decisions, there are a couple of helper methods in the `Helpers` module you can use. To test a single access decision, use the following method, supplying the document's cluster id as an argument: `mix run -e "Helpers.test_article(2287274192)"`. To update a single document, use the `update_article\1` method in the same manner.
+There is a web interface that you can use to debug Enricher's Access Decisions. This is available at `/debug/article`. Enter the cluster id of the article you want to debug and the endpoint of the relevant Solr index and it will print a summary of the relevant data. By default it will use the latest journal cache; if you want to use a new journal cache, you can refresh the cache at `/cache/update`.
 
 ## System Design
 

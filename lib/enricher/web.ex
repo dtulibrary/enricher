@@ -8,14 +8,20 @@ defmodule Enricher.Web do
 
   post "/harvest/create" do
     case conn.params do
-      %{"set" => "full", "endpoint" => solr_url} ->
+      %{"mode" => "full", "endpoint" => solr_url} ->
         [code, msg] = process_harvest_request(:full, solr_url)
         send_resp(conn, code, msg) 
-      %{"set" => "partial", "endpoint" => solr_url} ->
+      %{"mode" => "partial", "endpoint" => solr_url} ->
         [code, msg] = process_harvest_request(:partial, solr_url)
         send_resp(conn, code, msg) 
+      %{"mode" => "sfx", "endpoint" => solr_url} ->
+        [code, msg] = process_harvest_request(:sfx, solr_url)
+        send_resp(conn, code, msg) 
+      %{"mode" => "no_access", "endpoint" => solr_url} ->
+        [code, msg] = process_harvest_request(:no_access, solr_url)
+        send_resp(conn, code, msg) 
       _ ->
-        send_resp(conn, 400, "Create requires arguments of set and endpoint")
+        send_resp(conn, 400, "Create requires arguments of mode and endpoint")
     end  
   end
 
