@@ -23,5 +23,9 @@
     <code>
       <%= inspect access %>
     </code>
+    <h2>Update</h2>
+    <code>
+      <%= inspect update %>
+    </code>
   </body>
 </html>

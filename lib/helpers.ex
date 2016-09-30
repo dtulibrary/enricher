@@ -7,6 +7,7 @@ defmodule Helpers do
     article = SolrClient.fetch_article(id, endpoint)
     journal = JournalCache.journal_for_article(Cache, article)
     decision = AccessDecider.decide(article, Cache) 
-    {article, journal, decision}
+    update = AccessDecider.create_update(article, Cache) |> MetastoreUpdater.create_update
+    {article, journal, decision, update}
   end
 end

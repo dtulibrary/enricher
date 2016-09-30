@@ -45,7 +45,8 @@ defmodule Enricher.Web do
         false -> 200
       end
     message = Enricher.LogServer.last_message(WebLogger) 
-    page = EEx.eval_file("templates/status.eex", [status: status, message: message])
+    commit_buffer = CommitManager.current_count(CommitManager)
+    page = EEx.eval_file("templates/status.eex", [status: status, message: message, commit_buffer: commit_buffer])
     conn 
     |> put_resp_content_type("text/html")
     |> send_resp(status_code, page)
@@ -89,9 +90,9 @@ defmodule Enricher.Web do
   end
 
   def article_debug_page(id, endpoint) do
-    {article, journal, access} = Helpers.test_article(id, endpoint)
+    {article, journal, access, update} = Helpers.test_article(id, endpoint)
     EEx.eval_file("templates/debug_access.eex", [
-      id: id, endpoint: endpoint, article: article, journal: journal, access: access
+      id: id, endpoint: endpoint, article: article, journal: journal, access: access, update: update
     ])
   end
   def article_debug_form do

@@ -4,22 +4,26 @@ defmodule UpdateStage do
   require Logger
 
   def init(_args) do
+    CommitManager.register_updater(CommitManager, self)
     {:consumer, []}
   end
 
   def handle_events(updates, _from, []) do
     MetastoreUpdater.update_docs(updates)
-    Enricher.HarvestManager.update_count(Manager, Enum.count(updates))
+    count = Enum.count(updates)
+    Enricher.HarvestManager.update_count(Manager, count)
+    CommitManager.update(CommitManager, count)
     {:noreply, [], []}
   end
   
-  def handle_info({{prev, _sub}, :nomoredocs}, _state) do
-    Logger.info "Received message :nomoredocs - committing and exiting..."
-    MetastoreUpdater.commit_updates
-    :timer.sleep(60000)
-    GenStage.stop(prev, :nomoredocs)
-    GenStage.stop(self, :nomoredocs)
+  def handle_info({{prev, _sub}, :nomoredocs}, state) do
+    Logger.warn "Received message :nomoredocs - committing.."
+    CommitManager.deregister_updater(CommitManager, self)
+    {:noreply, [], state}
   end
 
-  def handle_info(_generic, state), do: {:noreply, [], state}
+  def handle_info(info, state) do
+    Logger.info "#{inspect info} received by UpdateStage"
+    {:noreply, [], state}
+  end
 end

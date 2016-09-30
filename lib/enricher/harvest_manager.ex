@@ -68,6 +68,7 @@ defmodule Enricher.HarvestManager do
     if Process.alive?(status.reference.pid) do
       Task.shutdown(status.reference)
     end
+    MetastoreUpdater.commit_updates(url: "#{status.endpoint}", new_searcher: true)
     updated_status = status |> Map.merge(%{in_progress: false})
     {:reply, :ok, updated_status}
   end
@@ -124,4 +125,5 @@ defmodule Enricher.HarvestManager do
   end
 
   def handle_info(_msg, state), do: {:noreply, state}
+
 end
