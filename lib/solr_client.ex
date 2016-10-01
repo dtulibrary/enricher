@@ -7,7 +7,7 @@ defmodule SolrClient do
   @default_query_params %{
     "fq" => "format:article OR format:book",
     "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss",
+    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss, pub_date_tis",
     "sort" => "id desc",
     "rows" => 10000
   }
@@ -45,6 +45,7 @@ defmodule SolrClient do
     Map.merge(default_params, %{"cursorMark" => cursor_mark, "rows" => rows})
     |> URI.encode_query
   end
+
   def make_query_string(default_params, cursor_mark) do
     Map.merge(default_params, %{"cursorMark" => cursor_mark})
     |> URI.encode_query
