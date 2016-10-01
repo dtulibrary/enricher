@@ -23,7 +23,7 @@ defmodule UpdateStage do
   end
 
   def handle_info(info, state) do
-    Logger.info "#{inspect info} received by UpdateStage"
+    Logger.debug "#{inspect info} received by UpdateStage"
     {:noreply, [], state}
   end
 end
