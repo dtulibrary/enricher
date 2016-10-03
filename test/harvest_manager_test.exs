@@ -1,5 +1,7 @@
 defmodule HarvestManagerTest do
   use ExUnit.Case, async: true
+  alias Experimental.GenStage
+  use GenStage
 
   setup do
     {:ok, manager} = Enricher.HarvestManager.start_link
@@ -52,6 +54,21 @@ defmodule HarvestManagerTest do
       {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
       status = Enricher.HarvestManager.status(TestManager)
       assert status.in_progress == false
+    end
+  end
+  describe "register_updater/2" do
+    test "it allows us to register an updater", %{manager: manager} do
+      {:ok, pid} = GenStage.start_link(UpdateStage, [])
+      Enricher.HarvestManager.register_updater(manager, pid)
+      assert Enricher.HarvestManager.updaters(manager) == [pid]
+    end
+  end
+  describe "deregister_updater/2" do
+    test "it disconnects an updater", %{manager: manager} do
+      {:ok, pid} = GenStage.start_link(UpdateStage, [])
+      Enricher.HarvestManager.register_updater(manager, pid)
+      Enricher.HarvestManager.deregister_updater(manager, pid)
+      assert Enricher.HarvestManager.updaters(manager) == []
     end
   end
 end

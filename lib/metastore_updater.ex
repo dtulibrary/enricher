@@ -1,12 +1,11 @@
 defmodule MetastoreUpdater do
   require Logger
-  def update_url, do: Enricher.HarvestManager.update_endpoint(Manager)
 
   def update_docs(updates) do
-    updates |> create_updates |> send_updates
+    updates |> create_updates |> send_updates(url: Enricher.HarvestManager.update_endpoint(Manager))
   end
 
-  def send_updates(updates) when is_list(updates) do
+  def send_updates(updates, url: update_url) when is_list(updates) do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
     Logger.debug "Sending updates to #{update_url}"
@@ -14,8 +13,8 @@ defmodule MetastoreUpdater do
   end
 
   @doc "Commit updates to Solr"
-  def commit_updates do
-    Logger.debug "Committing updates"
+  def commit_updates(url: update_url) do
+    Logger.debug "Committing updates to #{update_url <> "?commit=true"}"
     update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
   end
 
@@ -24,8 +23,8 @@ defmodule MetastoreUpdater do
   and open a new searcher - should only be
   called at conclusion of harvest.
   """
-  def commit_updates(new_searcher: true) do
-    Logger.debug "Committing updates and opening new searcher"
+  def commit_updates(url: update_url, new_searcher: true) do
+    Logger.debug "Committing updates to #{update_url <> "?commit=true"}"
     update_url <> "?commit=true&openSearcher=true" |> HTTPoison.get!([], stream_to: self)
   end
 

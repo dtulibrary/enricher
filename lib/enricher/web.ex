@@ -45,8 +45,7 @@ defmodule Enricher.Web do
         false -> 200
       end
     message = Enricher.LogServer.last_message(WebLogger) 
-    commit_buffer = CommitManager.current_count(CommitManager)
-    page = EEx.eval_file("templates/status.eex", [status: status, message: message, commit_buffer: commit_buffer])
+    page = EEx.eval_file("templates/status.eex", [status: status, message: message])
     conn 
     |> put_resp_content_type("text/html")
     |> send_resp(status_code, page)

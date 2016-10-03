@@ -9,6 +9,7 @@ defmodule Enricher.HarvestManager do
   require Logger
   # Allows injection of a dummy module for unit tests
   @harvest_module Application.get_env(:enricher, :harvest_module, Enricher)
+  @updater Application.get_env(:enricher, :metastore_updater, MetastoreUpdater)
 
   ## Client API ##
 
@@ -19,13 +20,25 @@ defmodule Enricher.HarvestManager do
   def status(pid) do
     GenServer.call(pid, :status)
   end
+  
+  def register_updater(pid, updater_pid) do
+    GenServer.call(pid, {:register_updater, updater_pid})
+  end
+
+  def deregister_updater(pid, updater_pid) do
+    GenServer.cast(pid, {:deregister_updater, updater_pid})
+  end
+
+  def updaters(pid) do
+    pid |> status |> Map.get(:updaters)
+  end
 
   def search_endpoint(pid) do
-    endpoint(pid) <> "/solr/metastore/toshokan"
+    pid |> status |> Enricher.Status.search_endpoint
   end
 
   def update_endpoint(pid) do
-    endpoint(pid) <> "/solr/metastore/update"
+    pid |> status |> Enricher.Status.update_endpoint
   end
 
   def endpoint(pid) do
@@ -68,7 +81,7 @@ defmodule Enricher.HarvestManager do
     if Process.alive?(status.reference.pid) do
       Task.shutdown(status.reference)
     end
-    MetastoreUpdater.commit_updates(url: "#{status.endpoint}", new_searcher: true)
+    @updater.commit_updates(url: Enricher.Status.update_endpoint(status), new_searcher: true)
     updated_status = status |> Map.merge(%{in_progress: false})
     {:reply, :ok, updated_status}
   end
@@ -85,7 +98,7 @@ defmodule Enricher.HarvestManager do
   end
   
   def handle_call({:start_harvest, mode, endpoint}, _from, status) do
-    case Map.get(status, :in_progress) do
+    case status.in_progress do
       true ->
         Logger.error "Cannot start harvest - harvest already in progress"
         {:reply, :error, status}
@@ -108,6 +121,22 @@ defmodule Enricher.HarvestManager do
     {:reply, :ok, updated_status}
   end
 
+  def handle_call({:register_updater, updater}, _from, status) do
+    new_status = Map.merge(status, %{updaters: status.updaters ++ [updater]})
+    {:reply, :ok, new_status}
+  end
+
+  def handle_cast({:deregister_updater, updater}, status) do
+    new_updaters = Enum.reject(status.updaters, fn(pid) -> pid == updater end)
+    new_status = Map.merge(status, %{updaters: new_updaters})
+    if (length(new_updaters) == 0 && length(status.updaters) > 0) do
+      Logger.warn "All updaters have ceased - committing updates and opening a new searcher."
+      new_status = Map.merge(new_status, %{number: 0})
+      @updater.commit_updates(url: Enricher.Status.update_endpoint(status), new_searcher: true)
+    end
+    {:noreply, new_status}
+  end
+
   @doc """
   Handle stop message from Harvest Task.
   If reference matches current Harvest job,
@@ -124,6 +153,15 @@ defmodule Enricher.HarvestManager do
     {:noreply, updated_status}
   end
 
-  def handle_info(_msg, state), do: {:noreply, state}
+  def handle_info(_msg, status), do: {:noreply, status}
 
+  defmodule TestUpdater do
+    @moduledoc """
+    This module exists purely to allow the 
+    manager to be testable without 
+    a running Solr.
+    """
+    def commit_updates, do: :ok
+    def commit_updates(_), do: :ok
+  end
 end

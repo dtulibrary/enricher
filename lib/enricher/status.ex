@@ -1,5 +1,5 @@
 defmodule Enricher.Status do
-  defstruct [:endpoint, :mode, :start_time, :end_time, :reference, batch_size: 0, docs_processed: 0, in_progress: false]
+  defstruct [:endpoint, :mode, :start_time, :end_time, :reference, batch_size: 0, docs_processed: 0, in_progress: false, updaters: []]
   use ExConstructor
 
   def throughput(%Enricher.Status{in_progress: false, end_time: nil}), do: 0
@@ -22,5 +22,13 @@ defmodule Enricher.Status do
     (docs / time) |> Float.floor |> Kernel.trunc
   end
   defp calc_throughput(_,_), do: 0
+
+  def search_endpoint(status) do
+    status.endpoint <> "/solr/metastore/toshokan"
+  end
+
+  def update_endpoint(status) do
+    status.endpoint <> "/solr/metastore/update"
+  end
 end
 

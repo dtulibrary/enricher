@@ -39,10 +39,6 @@
         <td>Docs per second</td>
         <td><%= Enricher.Status.throughput(status) %></td>
       </tr>
-      <tr>
-        <td>Commit buffer size</td>
-        <td><%= commit_buffer %></td>
-      </tr>
      <tr>
         <td>Last message</td>
         <td><%= message %></td>

@@ -27,7 +27,7 @@ defmodule WebTest do
       assert conn.status == 202
     end
     test "/create returns 503 is there is already a job running" do
-      conn = conn(:post, "/harvest/create", %{"set" => "full", "endpoint" => "http://solr.test:8983"})
+      conn = conn(:post, "/harvest/create", %{"mode" => "full", "endpoint" => "http://solr.test:8983"})
       conn = Enricher.Web.call(conn, @opts)
       assert conn.state == :sent
       assert conn.status == 503 
@@ -46,13 +46,13 @@ defmodule WebTest do
       assert conn.status == 200
     end
     test "/create returns 202 if given valid parameters" do
-      conn = conn(:post, "/harvest/create", %{"set" => "full", "endpoint" => "http://solr.test:8983"})
+      conn = conn(:post, "/harvest/create", %{"mode" => "full", "endpoint" => "http://solr.test:8983"})
       conn = Enricher.Web.call(conn, @opts)
       assert conn.state == :sent
       assert conn.status == 202
     end
     test "/create returns client error code if not given valid parameter" do
-      conn = conn(:post, "/harvest/create", %{"set" => "fudgemuffin"}) |> Enricher.Web.call(@opts)
+      conn = conn(:post, "/harvest/create", %{"mode" => "fudgemuffin"}) |> Enricher.Web.call(@opts)
       assert conn.state == :sent
       assert conn.status == 400
     end

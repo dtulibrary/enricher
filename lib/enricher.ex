@@ -14,7 +14,6 @@ defmodule Enricher do
       worker(Enricher.HarvestManager, [Manager]),
       worker(JournalCache, [Cache]),
       worker(Enricher.LogServer, [WebLogger]),
-      worker(CommitManager, [CommitManager]),
       Plug.Adapters.Cowboy.child_spec(:http, Enricher.Web, [], [port: 4001])
     ]
     {:ok, pid} = Supervisor.start_link(children, strategy: :one_for_one)
