@@ -15,7 +15,9 @@ defmodule SolrJournal do
 
   def embargo(%SolrJournal{embargo_ssf: nil}), do: 0
   def embargo(%SolrJournal{embargo_ssf: []}), do: 0
-  def embargo(%SolrJournal{embargo_ssf: [first|_]}), do: String.to_integer(first)
+  def embargo(%SolrJournal{embargo_ssf: terms}) do
+    terms |> Enum.map(&String.to_integer/1) |> Enum.sort |> Kernel.hd
+  end
 
   @doc """
   Given a journal with an embargo represented as days

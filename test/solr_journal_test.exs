@@ -164,6 +164,9 @@ defmodule SolrJournalTest do
     test "it returns 0 if the number is a blank array" do
       assert 0 == SolrJournal.embargo(%SolrJournal{embargo_ssf: []})
     end
+    test "it returns the smallest value when more than one values are present" do
+      assert 180 == SolrJournal.embargo(%SolrJournal{embargo_ssf: ["1095", "180", "290"]})
+    end
   end
   describe "identifiers\1" do
     test "with two issns" do
