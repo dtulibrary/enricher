@@ -37,18 +37,38 @@ defmodule Enricher.Web do
     send_resp(conn, 204, "")
   end
 
+  get "/harvest/status.json" do
+    status = Enricher.HarvestManager.status(Manager)
+    json_status(conn, status)
+  end
+
   get "/harvest/status" do
     status = Enricher.HarvestManager.status(Manager)
-    status_code =
-      case status.in_progress do
-        true -> 202
-        false -> 200
-      end
+    cond do
+      {"accept", "application/json"} in conn.req_headers ->
+        json_status(conn, status)
+      :else -> html_status(conn, status)
+    end
+  end
+
+  defp html_status(conn, status) do
+    resp_code = status_code(status)
     message = Enricher.LogServer.last_message(WebLogger) 
     page = EEx.eval_file("templates/status.eex", [status: status, message: message])
-    conn 
-    |> put_resp_content_type("text/html")
-    |> send_resp(status_code, page)
+    conn |> put_resp_content_type("text/html") |> send_resp(resp_code, page)
+  end
+
+  defp json_status(conn, status) do
+    resp_code = status_code(status)
+    json = Poison.encode!(status)
+    conn |> put_resp_content_type("application/json") |> send_resp(resp_code, json)
+  end
+
+  defp status_code(status) do 
+    case status.in_progress do
+      true -> 202
+      false -> 200
+    end
   end
 
   get "/harvest/log" do

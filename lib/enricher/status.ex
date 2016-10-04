@@ -1,3 +1,17 @@
+defimpl Poison.Encoder, for: Enricher.Status do
+  def encode(%{mode: mode, endpoint: endpoint, start_time: start_time, end_time: end_time, batch_size: batch_size, docs_processed: docs_processed, in_progress: in_progress}, options) do
+    %{
+      mode: mode,
+      endpoint: endpoint,
+      start_time: Enricher.Status.format_time(start_time),
+      end_time: Enricher.Status.format_time(end_time),
+      batch_size: batch_size,
+      docs_processed: docs_processed,
+      in_progress: in_progress
+    } |> Poison.Encoder.encode([])
+  end
+end
+
 defmodule Enricher.Status do
   defstruct [:endpoint, :mode, :start_time, :end_time, :reference, batch_size: 0, docs_processed: 0, in_progress: false, updaters: []]
   use ExConstructor
@@ -31,4 +45,3 @@ defmodule Enricher.Status do
     status.endpoint <> "/solr/metastore/update"
   end
 end
-

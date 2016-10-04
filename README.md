@@ -29,7 +29,7 @@ To run the application, run `mix run --no-halt`. This will launch a web interfac
 
 | Endpoint | Params | Description
 | --- |:----:| ----- |
-| GET /harvest/status | |  Gives information about the current job's progress, returns 202 if a job is in progress, 200 otherwise |
+| GET /harvest/status | |  Gives information about the current job's progress, returns 202 if a job is in progress, 200 otherwise. Also available as JSON |
 | POST /harvest/create | `mode=partial|full|sfx|no_access endpoint=solr_url` | Start a harvest at the given endpoint, returns 202 if job accepted, 503 if a job is already in progress, 400 if params are incorrect |
 | POST /harvest/stop | | Stops the current harvest job, returns 204 if successful |
 | GET /debug/article | |  Debugging interface for access decisions |

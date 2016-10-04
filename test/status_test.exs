@@ -17,4 +17,12 @@ defmodule StatusTest do
       assert Enricher.Status.throughput(status) == 0
     end
   end
+  describe "json" do
+    test "it should be encoded as json" do
+      ten_minutes_ago = Map.merge(DateTime.utc_now, %{minute: DateTime.utc_now.minute - 10})
+      status = Enricher.Status.new(in_progress: true, start_time: ten_minutes_ago, docs_processed: 1_000_000)
+      json = Poison.encode!(status)
+      assert {:ok, _body} = Poison.decode(json)
+    end
+  end
 end
