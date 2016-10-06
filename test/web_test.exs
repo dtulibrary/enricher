@@ -13,7 +13,7 @@ defmodule WebTest do
 
   defp harvest_in_progress(_) do
     fake_task = Task.async(fn -> 1 + 1 end)
-    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000, reference: fake_task, start_time: DateTime.utc_now, edndpoint: "http://solr.test:8983"})
+    Enricher.HarvestManager.update_status(Manager, %{in_progress: true, docs_processed: 2_000, reference: fake_task, start_time: DateTime.utc_now, endpoint: "http://solr.test:8983"})
   end
   defp harvest_not_in_progress(_) do
     Enricher.HarvestManager.update_status(Manager, %{in_progress: false})
@@ -44,6 +44,11 @@ defmodule WebTest do
       conn = conn(:post, "/harvest/stop") |> Enricher.Web.call(@opts)
       assert conn.state == :sent
       assert conn.status == 204
+      
+      # Status should then return a 200
+      conn = conn(:get, "/harvest/status") |> Enricher.Web.call(@opts)
+      assert conn.state == :sent
+      assert conn.status == 200
     end
   end
   describe "when harvest is not in progress" do
