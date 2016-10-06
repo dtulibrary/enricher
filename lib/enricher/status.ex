@@ -13,7 +13,7 @@ defimpl Poison.Encoder, for: Enricher.Status do
 end
 
 defmodule Enricher.Status do
-  defstruct [:endpoint, :mode, :start_time, :end_time, :reference, batch_size: 0, docs_processed: 0, in_progress: false, updaters: []]
+  defstruct [:endpoint, :mode, :start_time, :end_time, :reference, batch_size: 0, docs_processed: 0, in_progress: false]
   use ExConstructor
 
   def throughput(%Enricher.Status{in_progress: false, end_time: nil}), do: 0

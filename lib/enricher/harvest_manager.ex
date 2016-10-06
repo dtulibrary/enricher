@@ -8,7 +8,7 @@ defmodule Enricher.HarvestManager do
   use GenServer
   require Logger
   # Allows injection of a dummy module for unit tests
-  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher)
+  @harvest_module Application.get_env(:enricher, :harvest_module, Enricher.StageManager)
   @updater Application.get_env(:enricher, :metastore_updater, MetastoreUpdater)
 
   ## Client API ##
@@ -21,18 +21,6 @@ defmodule Enricher.HarvestManager do
     GenServer.call(pid, :status)
   end
   
-  def register_updater(pid, updater_pid) do
-    GenServer.call(pid, {:register_updater, updater_pid})
-  end
-
-  def deregister_updater(pid, updater_pid) do
-    GenServer.cast(pid, {:deregister_updater, updater_pid})
-  end
-
-  def updaters(pid) do
-    pid |> status |> Map.get(:updaters)
-  end
-
   def search_endpoint(pid) do
     pid |> status |> Enricher.Status.search_endpoint
   end
@@ -81,7 +69,7 @@ defmodule Enricher.HarvestManager do
     if Process.alive?(status.reference.pid) do
       Task.shutdown(status.reference)
     end
-    @updater.commit_updates(url: Enricher.Status.update_endpoint(status), new_searcher: true)
+    @harvest_module.stop_harvest
     updated_status = status |> Map.merge(%{in_progress: false})
     {:reply, :ok, updated_status}
   end
@@ -104,7 +92,7 @@ defmodule Enricher.HarvestManager do
         {:reply, :error, status}
       false ->
         Logger.info "Starting #{mode} harvest..."
-        ref = Task.async(fn -> @harvest_module.start_harvest(mode) end)
+        ref = Task.async(fn -> @harvest_module.start_harvest(StageManager, mode) end)
         status = Enricher.Status.new(%{
           start_time: DateTime.utc_now,
           in_progress: true,
@@ -119,22 +107,6 @@ defmodule Enricher.HarvestManager do
   def handle_call(:harvest_complete, _from, status) do
     updated_status = status |> Map.merge(%{in_progress: false, end_time: DateTime.utc_now})
     {:reply, :ok, updated_status}
-  end
-
-  def handle_call({:register_updater, updater}, _from, status) do
-    new_status = Map.merge(status, %{updaters: status.updaters ++ [updater]})
-    {:reply, :ok, new_status}
-  end
-
-  def handle_cast({:deregister_updater, updater}, status) do
-    new_updaters = Enum.reject(status.updaters, fn(pid) -> pid == updater end)
-    new_status = Map.merge(status, %{updaters: new_updaters})
-    if (length(new_updaters) == 0 && length(status.updaters) > 0) do
-      Logger.warn "All updaters have ceased - committing updates and opening a new searcher."
-      new_status = Map.merge(new_status, %{number: 0})
-      @updater.commit_updates(url: Enricher.Status.update_endpoint(status), new_searcher: true)
-    end
-    {:noreply, new_status}
   end
 
   @doc """

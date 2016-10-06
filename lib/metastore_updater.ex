@@ -9,13 +9,13 @@ defmodule MetastoreUpdater do
     body = Poison.encode!(updates)
     headers = [{"Content-Type", "application/json"}]
     Logger.debug "Sending updates to #{update_url}"
-    HTTPoison.post(update_url, body, headers, stream_to: self)
+    HTTPoison.post(update_url, body, headers, timeout: 240000, recv_timeout: 240000, stream_to: self)
   end
 
   @doc "Commit updates to Solr"
   def commit_updates(url: update_url) do
     Logger.debug "Committing updates to #{update_url <> "?commit=true"}"
-    update_url <> "?commit=true" |> HTTPoison.get!([], stream_to: self)
+    update_url <> "?commit=true" |> HTTPoison.get!([], timeout: 240000, recv_timeout: 240000, stream_to: self)
   end
 
   @doc """

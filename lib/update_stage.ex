@@ -4,7 +4,6 @@ defmodule UpdateStage do
   require Logger
 
   def init(_args) do
-    Enricher.HarvestManager.register_updater(Manager, self)
     {:consumer, []}
   end
 
@@ -16,9 +15,8 @@ defmodule UpdateStage do
   end
   
   def handle_info({{prev, _sub}, :nomoredocs}, state) do
-    Logger.warn "Received message :nomoredocs - committing.."
-    Enricher.HarvestManager.deregister_updater(Manager, self)
-    {:noreply, [], state}
+    Logger.warn "Received message :nomoredocs - shutting down.."
+    {:stop, :shutdown, :ok}
   end
 
   def handle_info(info, state) do

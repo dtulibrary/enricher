@@ -14,8 +14,8 @@ defmodule DeciderStage do
   end
 
   def handle_info({{_producer, _sub}, :nomoredocs}, _state) do
-    Logger.info "Received message nomoredocs"
+    Logger.info "Received message nomoredocs - shutting down..."
     GenStage.async_notify(self(), :nomoredocs)
-    {:noreply, [], :ok}
+    {:stop, :shutdown, :ok}
   end
 end

@@ -37,11 +37,15 @@ defmodule HarvestStage do
   def process(demand, harvest_function, {mode, cursor, subscribers}) do
     {docs, new_cursor, batch_size} = harvest_function.(demand, cursor)
     Enricher.HarvestManager.update_batch_size(Manager, batch_size)
-    if is_nil(new_cursor) do
-      Logger.info "No more docs, messaging subscribers"
-      Enricher.HarvestManager.harvest_complete(Manager)
-      GenStage.async_notify(self(), :nomoredocs)
+    case new_cursor do
+      nil ->
+        Logger.info "No more docs, messaging subscribers"
+        Enricher.HarvestManager.harvest_complete(Manager)
+        Process.send(StageManager, :nomoredocs, [])
+        GenStage.async_notify(self(), :nomoredocs) 
+        {:stop, :shutdown, :ok}
+      _ ->
+        {:noreply, docs, {mode, new_cursor, subscribers}}
     end
-    {:noreply, docs, {mode, new_cursor, subscribers}}
   end 
 end
