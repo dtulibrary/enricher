@@ -126,9 +126,9 @@ defmodule SolrClient do
     case Poison.decode(body) do
       {:ok, json} -> json
       {:error, msg} ->
-        Logger.error "Error decoding json: #{msg}"
-        Logger.error body
-        nil
+        Logger.error "Error decoding json: #{inspect msg}"
+        Logger.error inspect(body)
+        raise "Error decoding json"
     end
   end
 

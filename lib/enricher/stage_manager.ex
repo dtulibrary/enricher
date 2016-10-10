@@ -87,6 +87,13 @@ defmodule Enricher.StageManager do
 
   def handle_info(_msg, status), do: {:noreply, status}
 
+  def terminate(reason, _state) do
+    Logger.error "Stage Manager being shut down for reason #{inspect reason}"
+    status = Enricher.HarvestManager.status(Manager) |> Map.merge(%{in_progress: false})
+    Enricher.HarvestManager.update_status(Manager, status)
+    {:shutdown, reason}
+  end
+
   def commit_updates do
     MetastoreUpdater.commit_updates(
       url: Enricher.HarvestManager.update_endpoint(Manager),

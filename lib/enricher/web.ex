@@ -7,32 +7,24 @@ defmodule Enricher.Web do
   plug :dispatch
 
   post "/harvest/create" do
-    case conn.params do
+    [code, msg] = case conn.params do
       %{"mode" => "full", "endpoint" => solr_url} ->
-        [code, msg] = process_harvest_request(:full, solr_url)
-        send_resp(conn, code, msg) 
+        process_harvest_request(:full, solr_url)
       %{"mode" => "partial", "endpoint" => solr_url} ->
-        [code, msg] = process_harvest_request(:partial, solr_url)
-        send_resp(conn, code, msg) 
+        process_harvest_request(:partial, solr_url)
       %{"mode" => "sfx", "endpoint" => solr_url} ->
-        [code, msg] = process_harvest_request(:sfx, solr_url)
-        send_resp(conn, code, msg) 
+        process_harvest_request(:sfx, solr_url)
       %{"mode" => "no_access", "endpoint" => solr_url} ->
-        [code, msg] = process_harvest_request(:no_access, solr_url)
-        send_resp(conn, code, msg) 
+        process_harvest_request(:no_access, solr_url)
       _ ->
-        send_resp(conn, 400, "Create requires arguments of mode and endpoint")
+        [400, "Create requires arguments of mode and endpoint"]
     end  
-  end
-
-  defp process_harvest_request(harvest_type, endpoint) do
-    case Enricher.HarvestManager.start_harvest(Manager, harvest_type, endpoint) do
-      :ok -> [202, ""]
-      :error -> [503, "Harvest already in progress"]
-    end
+    Logger.info "Create request received, responding with #{code} #{msg}"
+    send_resp(conn, code, msg) 
   end
 
   post "/harvest/stop" do
+    Logger.info "Stop request received"
     Enricher.HarvestManager.stop_harvest(Manager)
     send_resp(conn, 204, "")
   end
@@ -48,26 +40,6 @@ defmodule Enricher.Web do
       {"accept", "application/json"} in conn.req_headers ->
         json_status(conn, status)
       :else -> html_status(conn, status)
-    end
-  end
-
-  defp html_status(conn, status) do
-    resp_code = status_code(status)
-    message = Enricher.LogServer.last_message(WebLogger) 
-    page = EEx.eval_file("templates/status.eex", [status: status, message: message])
-    conn |> put_resp_content_type("text/html") |> send_resp(resp_code, page)
-  end
-
-  defp json_status(conn, status) do
-    resp_code = status_code(status)
-    json = Poison.encode!(status)
-    conn |> put_resp_content_type("application/json") |> send_resp(resp_code, json)
-  end
-
-  defp status_code(status) do 
-    case status.in_progress do
-      true -> 202
-      false -> 200
     end
   end
 
@@ -114,7 +86,35 @@ defmodule Enricher.Web do
       id: id, endpoint: endpoint, article: article, journal: journal, access: access, update: update
     ])
   end
+
   def article_debug_form do
     EEx.eval_file("templates/debug_form.eex") 
+  end
+
+  defp html_status(conn, status) do
+    resp_code = status_code(status)
+    message = Enricher.LogServer.last_message(WebLogger) 
+    page = EEx.eval_file("templates/status.eex", [status: status, message: message])
+    conn |> put_resp_content_type("text/html") |> send_resp(resp_code, page)
+  end
+
+  defp json_status(conn, status) do
+    resp_code = status_code(status)
+    json = Poison.encode!(status)
+    conn |> put_resp_content_type("application/json") |> send_resp(resp_code, json)
+  end
+
+  defp status_code(status) do 
+    case status.in_progress do
+      true -> 202
+      false -> 200
+    end
+  end
+
+  defp process_harvest_request(harvest_type, endpoint) do
+    case Enricher.HarvestManager.start_harvest(Manager, harvest_type, endpoint) do
+      :ok -> [202, ""]
+      :error -> [503, "Harvest already in progress"]
+    end
   end
 end
