@@ -35,6 +35,7 @@ defmodule HarvestStage do
   end
 
   def process(demand, harvest_function, {mode, cursor, subscribers}) do
+    Logger.debug "demand received - mode #{mode}"
     {docs, new_cursor, batch_size} = harvest_function.(demand, cursor)
     Enricher.HarvestManager.update_batch_size(Manager, batch_size)
     case new_cursor do
