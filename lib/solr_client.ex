@@ -3,27 +3,29 @@ defmodule SolrClient do
   require Logger
 
   @fetcher Application.get_env(:enricher, :solr_fetcher, SolrClient.Fetcher)
-  @journal_defaults %{"q" => "*:*", "fq" => "format:journal", "wt" => "json"}
-  @default_query_params %{
-    "fq" => "format:article OR format:book",
-    "wt" => "json",
-    "fl" => "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss, pub_date_tis",
-    "sort" => "id desc",
-    "rows" => 10000
-  }
+  @journal_defaults [q: "*:*", fq: "format:journal", wt: "json"]
+  @default_query_params [
+    q: "*:*",
+    fq: "format:article OR format:book OR format:other",
+    wt: "json",
+    fl: "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss, pub_date_tis",
+    sort: "id desc",
+    rows: 10000
+  ]
 
-  @full_query_params Map.merge(@default_query_params, %{"q" => "*:*"})
-  @partial_query_params Map.merge(@default_query_params, %{"q" => "fulltext_availability_ss:UNDETERMINED"})
-  @sfx_query_params Map.merge(@default_query_params, %{"q" => "fulltext_info_ss:sfx"})
-  @no_access_query_params Map.merge(@default_query_params, %{"q" => "fulltext_info_ss:none"})
+  @full_query_params @default_query_params ++ [q:  "*:*"]
+  @partial_query_params @default_query_params ++ [fq: "fulltext_availability_ss:UNDETERMINED"]
+  @sfx_query_params @default_query_params ++ [fq: "fulltext_info_ss:sfx"]
+  @no_access_query_params @default_query_params ++ [fq:  "fulltext_info_ss:none"]
 
-  @all_journals_params %{
-    "q" => "format:journal",
-    "fq" => "source_ss:jnl_sfx",
-    "wt" => "json",
-    "sort" => "id asc",
-    "rows" => 100000 
-  }
+  @all_journals_params [ 
+    q: "*:*",
+    fq: "format:journal",
+    fq: "source_ss:jnl_sfx",
+    wt: "json",
+    sort: "id asc",
+    rows: 100000 
+  ]
 
   def full_update(number, cursor) do
     fetch_docs(@full_query_params, number, cursor) 
@@ -42,13 +44,11 @@ defmodule SolrClient do
   end 
 
   def make_query_string(default_params, rows, cursor_mark) do
-    Map.merge(default_params, %{"cursorMark" => cursor_mark, "rows" => rows})
-    |> URI.encode_query
+    default_params ++ [cursorMark:  cursor_mark, rows: rows] |> URI.encode_query
   end
 
   def make_query_string(default_params, cursor_mark) do
-    Map.merge(default_params, %{"cursorMark" => cursor_mark})
-    |> URI.encode_query
+    default_params ++ [cursorMark:  cursor_mark] |> URI.encode_query
   end
 
   def fetch_docs(query_defaults, rows, cursor_mark) do
