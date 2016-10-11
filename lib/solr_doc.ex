@@ -116,6 +116,7 @@ defmodule SolrDoc do
     Enum.any?(sources, fn(s) -> Regex.match?(~r/orbit|rdb_/,s) end)
   end
 
+  def fulltext_url?(%SolrDoc{fulltext_list_ssf: nil}), do: false
   def fulltext_url?(%SolrDoc{fulltext_list_ssf: fulltext}) do
     fulltext |> Poison.decode! |> Map.has_key?("url")
   end
