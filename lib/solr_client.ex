@@ -3,14 +3,14 @@ defmodule SolrClient do
   require Logger
 
   @fetcher Application.get_env(:enricher, :solr_fetcher, SolrClient.Fetcher)
-  @journal_defaults [q: "*:*", fq: "format:journal", wt: "json"]
+  @journal_defaults [q: "*:*", fq: "format:journal", facet: "false", wt: "json"]
   @default_query_params [
     q: "*:*",
     fq: "format:article OR format:book OR format:other",
     wt: "json",
     fl: "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss, pub_date_tis",
-    sort: "id desc",
-    rows: 10000
+    facet: "false",
+    sort: "id desc"
   ]
 
   @full_query_params @default_query_params ++ [q:  "*:*"]
@@ -45,10 +45,6 @@ defmodule SolrClient do
 
   def make_query_string(default_params, rows, cursor_mark) do
     default_params ++ [cursorMark:  cursor_mark, rows: rows] |> URI.encode_query
-  end
-
-  def make_query_string(default_params, cursor_mark) do
-    default_params ++ [cursorMark:  cursor_mark] |> URI.encode_query
   end
 
   def fetch_docs(query_defaults, rows, cursor_mark) do
@@ -168,8 +164,12 @@ defmodule SolrClient do
     def get(query_string, retries) do
       url = metastore_solr <> "?" <> query_string
       Logger.debug "Fetching #{url}"
+      start_time = DateTime.utc_now |> DateTime.to_unix
       case HTTPoison.get(url, [{"Keep-Alive", "Keep-Alive"}], timeout: 240000, recv_timeout: 240000) do
-         {:ok, %HTTPoison.Response{body: body}} -> body
+         {:ok, %HTTPoison.Response{body: body}} ->
+           end_time = DateTime.utc_now |> DateTime.to_unix
+           Logger.debug "Request took #{start_time - end_time} seconds" 
+           body
          {:error, %HTTPoison.Error{reason: reason}} ->
            Logger.error "Error querying #{url} - #{reason}."
            :timer.sleep((retries + 1) * 10000) # Give Solr a break
