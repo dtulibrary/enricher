@@ -111,4 +111,12 @@ defmodule SolrDoc do
     end)
   end
 
+  def pure_source?(%SolrDoc{source_ss: nil}), do: false
+  def pure_source?(%SolrDoc{source_ss: sources}) do
+    Enum.any?(sources, fn(s) -> Regex.match?(~r/orbit|rdb_/,s) end)
+  end
+
+  def fulltext_url?(%SolrDoc{fulltext_list_ssf: fulltext}) do
+    fulltext |> Poison.decode! |> Map.has_key?("url")
+  end
 end

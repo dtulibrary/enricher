@@ -99,4 +99,19 @@ defmodule SolrDocTest do
    assert 2018 == SolrDoc.year(with_year)
    assert nil == SolrDoc.year(no_year)
   end
+  describe "pure_source?" do
+    test "should be true for all pure sources" do
+      assert SolrDoc.pure_source?(%SolrDoc{source_ss: ["orbit"]}) 
+      assert SolrDoc.pure_source?(%SolrDoc{source_ss: ["sorbit"]})
+      assert SolrDoc.pure_source?(%SolrDoc{source_ss: ["rdb_ku"]}) 
+      assert SolrDoc.pure_source?(%SolrDoc{source_ss: ["rdb_au"]}) 
+      refute SolrDoc.pure_source?(%SolrDoc{source_ss: ["wiley"]}) 
+      refute SolrDoc.pure_source?(%SolrDoc{source_ss: ["elsevier"]}) 
+      refute SolrDoc.pure_source?(%SolrDoc{source_ss: ["scopus"]}) 
+    end
+    test "bad values" do
+      refute SolrDoc.pure_source?(%SolrDoc{source_ss: []}) 
+      refute SolrDoc.pure_source?(%SolrDoc{}) 
+    end
+  end
 end

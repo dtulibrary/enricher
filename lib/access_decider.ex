@@ -23,6 +23,7 @@ defmodule AccessDecider do
   def decide(solr_doc, cache_pid) do
     check_fulltext_availability(solr_doc, cache_pid, [
         &is_ebook/2,
+        &open_access_thesis?/2,
         &metastore_fulltext/2,
         &sfx_fulltext/2,
     ])
@@ -42,6 +43,12 @@ defmodule AccessDecider do
   def is_ebook(solr_doc, _cache_pid) do
     if solr_doc.format == "book" && "dtu_sfx" in solr_doc.source_ss do 
       [fulltext_access: @dtu_only, fulltext_info: "sfx"]
+    end
+  end
+
+  def open_access_thesis?(solr_doc, _cache_pid) do
+    if solr_doc.format == "thesis" && SolrDoc.pure_source?(solr_doc) && SolrDoc.fulltext_url?(solr_doc) do
+      [fulltext_access: @open_access, fulltext_info: "pure"]
     end
   end
 

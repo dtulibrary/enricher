@@ -77,6 +77,19 @@ defmodule AccessDeciderTest do
       assert [] == decision.fulltext_access
       assert "none" == decision.fulltext_info
     end
+
+    test "sorbit thesis with url should be open access", %{fetcher: fetcher} do 
+      sorbit_doc = %SolrDoc{format: "thesis", source_ss: ["sorbit"], fulltext_list_ssf: ["{\"source\":\"sorbit\",\"local\":true,\"type\":\"other\",\"url\":\"http://production.datastore.cvt.dk/filestore?oid=5795f17d6bbf232e70000a6e&targetid=5795f17d6bbf232e70000a71\"}"], holdings_ssf: nil, id: "202295716"}
+      decision = AccessDecider.create_update(sorbit_doc, fetcher)
+      assert ["dtupub", "dtu"] == decision.fulltext_access
+      assert "pure" == decision.fulltext_info
+    end
+    test "sorbit thesis without url should not be open access", %{fetcher: fetcher} do 
+      sorbit_doc = %SolrDoc{format: "thesis", source_ss: ["sorbit"], fulltext_list_ssf: ["{\"source\":\"sorbit\",\"local\":true,\"type\":\"other\"}"], holdings_ssf: nil, id: "202295716"}
+      decision = AccessDecider.create_update(sorbit_doc, fetcher)
+      refute ["dtupub", "dtu"] == decision.fulltext_access
+      refute "pure" == decision.fulltext_info
+    end
   end
 
   describe "sfx_fulltext\3" do

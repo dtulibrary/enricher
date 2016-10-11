@@ -6,9 +6,9 @@ defmodule SolrClient do
   @journal_defaults [q: "*:*", fq: "format:journal", facet: "false", wt: "json"]
   @default_query_params [
     q: "*:*",
-    fq: "format:article OR format:book OR format:other",
+    fq: "format:article OR format:book OR format:other OR format:thesis",
     wt: "json",
-    fl: "id, cluster_id_ss, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, access_ss, format, source_ss, pub_date_tis",
+    fl: "id, format, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, pub_date_tis, source_ss",
     facet: "false",
     sort: "id desc"
   ]
@@ -57,7 +57,9 @@ defmodule SolrClient do
   end
 
   def fetch_article(id, url) do
-    %{"q" => "cluster_id_ss:#{id}", "wt" => "json"} 
+    @default_query_params
+    |> Enum.into(%{})
+    |> Map.merge(%{q: "cluster_id_ss:#{id}"}) 
     |> URI.encode_query
     |> @fetcher.simple_get(url)
     |> decode
