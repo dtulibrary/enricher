@@ -114,4 +114,14 @@ defmodule SolrDocTest do
       refute SolrDoc.pure_source?(%SolrDoc{}) 
     end
   end
+  describe "fulltext_url?" do
+    test "should be false when there is no fulltext or there is invalid json" do
+      refute SolrDoc.fulltext_url?(%SolrDoc{}) 
+      refute SolrDoc.fulltext_url?(%SolrDoc{fulltext_list_ssf: []}) 
+      refute SolrDoc.fulltext_url?(%SolrDoc{fulltext_list_ssf: ["dkdkdk"]}) 
+    end
+    test "should be true when there is fulltext" do
+      assert SolrDoc.fulltext_url?(%SolrDoc{fulltext_list_ssf: [ "{\"source\":\"sorbit\",\"local\":true,\"type\":\"other\",\"url\":\"http://production.datastore.cvt.dk/filestore?oid=579743b06bbf232e70000f48&targetid=579743b06bbf232e70000f4f\"}"]})
+    end
+  end
 end

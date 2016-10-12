@@ -4,6 +4,11 @@ defmodule AccessDecider do
   @dtu_only ["dtu"]
   @open_access ["dtupub", "dtu"]
   @embargoed ["embargo"]
+  @open_access_metastore [fulltext_access: @open_access, fulltext_info: "metastore"]
+  @dtu_access_metastore [fulltext_access: @dtu_only, fulltext_info: "metastore"]  
+  @open_access_sfx [fulltext_access: @open_access, fulltext_info: "sfx"]  
+  @embargo_sfx [fulltext_access: @embargoed, fulltext_info: "sfx"]
+  @dtu_access_sfx [fulltext_access: @dtu_only, fulltext_info: "sfx"]  
 
   def create_update(solr_doc, cache_pid) do
     decide(solr_doc, cache_pid)
@@ -48,7 +53,7 @@ defmodule AccessDecider do
 
   def open_access_thesis?(solr_doc, _cache_pid) do
     if solr_doc.format == "thesis" && SolrDoc.pure_source?(solr_doc) && SolrDoc.fulltext_url?(solr_doc) do
-      [fulltext_access: @open_access, fulltext_info: "pure"]
+      @open_access_metastore
     end
   end
 
@@ -67,11 +72,11 @@ defmodule AccessDecider do
       %SolrJournal{} == journal -> nil
       SolrJournal.holdings(journal) == "NONE" -> nil
       SolrJournal.under_embargo?(journal: journal, article: doc) ->
-        [fulltext_access: @embargoed, fulltext_info: "sfx"]
+        @embargo_sfx
       SolrJournal.open_access?(journal) ->
-        [fulltext_access: @open_access, fulltext_info: "sfx"]  
+        @open_access_sfx
       SolrJournal.within_holdings?(journal: journal, article: doc) ->
-        [fulltext_access: @dtu_only, fulltext_info: "sfx"]  
+        @dtu_access_sfx
       true -> nil
     end
   end
@@ -85,11 +90,11 @@ defmodule AccessDecider do
     cond do
       is_nil(fulltext_types) -> nil
       Enum.member?(fulltext_types, "openaccess") ->  
-        [fulltext_access: @open_access, fulltext_info: "metastore"]
+        @open_access_metastore
       Enum.member?(fulltext_types, "research") -> 
-        [fulltext_access: @open_access, fulltext_info: "metastore"]  
+        @open_access_metastore
       Enum.member?(fulltext_types, "publisher") -> 
-        [fulltext_access: @dtu_only, fulltext_info: "metastore"]  
+        @dtu_access_metastore
       true ->
         Logger.debug "Unknown fulltext type [#{Enum.join(fulltext_types, ", ")}] - doing nothing"
         nil

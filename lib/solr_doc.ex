@@ -118,6 +118,9 @@ defmodule SolrDoc do
 
   def fulltext_url?(%SolrDoc{fulltext_list_ssf: nil}), do: false
   def fulltext_url?(%SolrDoc{fulltext_list_ssf: fulltext}) do
-    fulltext |> Poison.decode! |> Map.has_key?("url")
+    case Poison.decode(fulltext) do
+      {:ok, body} -> Map.has_key?(body, "url")
+      _ -> false
+    end
   end
 end

@@ -82,7 +82,7 @@ defmodule AccessDeciderTest do
       sorbit_doc = %SolrDoc{format: "thesis", source_ss: ["sorbit"], fulltext_list_ssf: ["{\"source\":\"sorbit\",\"local\":true,\"type\":\"other\",\"url\":\"http://production.datastore.cvt.dk/filestore?oid=5795f17d6bbf232e70000a6e&targetid=5795f17d6bbf232e70000a71\"}"], holdings_ssf: nil, id: "202295716"}
       decision = AccessDecider.create_update(sorbit_doc, fetcher)
       assert ["dtupub", "dtu"] == decision.fulltext_access
-      assert "pure" == decision.fulltext_info
+      assert "metastore" == decision.fulltext_info
     end
     test "sorbit thesis without url should not be open access", %{fetcher: fetcher} do 
       sorbit_doc = %SolrDoc{format: "thesis", source_ss: ["sorbit"], fulltext_list_ssf: ["{\"source\":\"sorbit\",\"local\":true,\"type\":\"other\"}"], holdings_ssf: nil, id: "202295716"}
