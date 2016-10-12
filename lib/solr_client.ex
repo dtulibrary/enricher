@@ -113,6 +113,7 @@ defmodule SolrClient do
 
   def journal_query_string(identifier, value) do
     @journal_defaults
+    |> Enum.into(%{})
     |> Map.merge(%{"q" => "#{identifier}:#{value}"})
     |> URI.encode_query
   end
