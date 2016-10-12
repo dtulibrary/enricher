@@ -30,6 +30,7 @@ defmodule AccessDecider do
         &is_ebook/2,
         &open_access_thesis?/2,
         &metastore_fulltext/2,
+        &sfx_journal?/2,
         &sfx_fulltext/2,
     ])
   end
@@ -56,6 +57,13 @@ defmodule AccessDecider do
       @open_access_metastore
     end
   end
+  
+  def sfx_journal?(%SolrDoc{format: "journal", source_ss: ["jnl_sfx"], journal_title_ts: titles}, _cache_pid) do
+    @dtu_access_sfx
+  end
+
+  def sfx_journal?(%SolrDoc{}, _cache_pid), do: nil
+
 
   @doc """
   Check for fulltext based on the SFX journal information

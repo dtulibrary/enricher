@@ -105,4 +105,12 @@ defmodule AccessDeciderTest do
       refute nil == AccessDecider.sfx_fulltext(pest_article, :bla, pest_journal)
     end
   end
+  describe "SFX journals" do
+    test "journals from SFX should be dtu access", %{fetcher: fetcher} do
+      decision = AccessDecider.create_update(%SolrDoc{format: "journal", id: "167176061", issn_ss: ["20075626"], journal_title_ts: ["Medicina Hospitalaria"], source_ss: ["jnl_sfx"]}, fetcher)
+      assert decision.fulltext_access == ["dtu"]
+      assert decision.fulltext_info == "sfx"
+    end
+  end
+      
 end

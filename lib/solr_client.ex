@@ -6,9 +6,9 @@ defmodule SolrClient do
   @journal_defaults [q: "*:*", fq: "format:journal", facet: "false", wt: "json"]
   @default_query_params [
     q: "*:*",
-    fq: "format:article OR format:book OR format:other OR format:thesis",
+    fq: "format:article OR format:book OR format:other OR format:thesis OR format:journal",
     wt: "json",
-    fl: "id, format, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, pub_date_tis, source_ss",
+    fl: "id, format, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, pub_date_tis, source_ss, journal_title_ts",
     facet: "false",
     sort: "id desc"
   ]
