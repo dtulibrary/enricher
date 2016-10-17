@@ -58,8 +58,18 @@ defmodule AccessDecider do
     end
   end
   
-  def sfx_journal?(%SolrDoc{format: "journal", source_ss: ["jnl_sfx"], journal_title_ts: titles}, _cache_pid) do
-    @dtu_access_sfx
+  @doc """
+  If the doc comes from SFX there is access for DTU users. If the doc has 'open access' in its title.
+  there is access for all users.
+  """
+  def sfx_journal?(%SolrDoc{format: "journal", source_ss: sources, journal_title_ts: titles}, _cache_pid) do
+    if "jnl_sfx" in sources do
+      if Enum.any?(titles, fn(t) -> String.downcase(t) |> String.contains?("open access") end) do
+        @open_access_sfx
+      else
+        @dtu_access_sfx
+      end
+    end
   end
 
   def sfx_journal?(%SolrDoc{}, _cache_pid), do: nil

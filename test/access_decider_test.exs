@@ -111,6 +111,11 @@ defmodule AccessDeciderTest do
       assert decision.fulltext_access == ["dtu"]
       assert decision.fulltext_info == "sfx"
     end
+    test "journals with open access in the title field should be open access", %{fetcher: fetcher} do
+      oa_journal = %SolrDoc{format: "journal", id: "167138337", issn_ss: ["21647860", "21647844"], journal_title_ts: ["Bioresearch Open Access"], source_ss: ["jnl_sfx"], title_ts: nil}
+      decision = AccessDecider.create_update(oa_journal, fetcher)
+      assert decision.fulltext_access == ["dtupub", "dtu"]
+      assert decision.fulltext_info == "sfx"
+    end
   end
-      
 end
