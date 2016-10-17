@@ -6,14 +6,14 @@ defmodule SolrClient do
   @journal_defaults [q: "*:*", fq: "format:journal", facet: "false", wt: "json"]
   @default_query_params [
     q: "*:*",
-    fq: "format:article OR format:book OR format:other OR format:thesis OR format:journal",
+    fq: "superformat_s:bib",
     wt: "json",
     fl: "id, format, issn_ss, eissn_ss, isbn_ss, fulltext_list_ssf, pub_date_tis, source_ss, journal_title_ts",
     facet: "false",
     sort: "id desc"
   ]
 
-  @full_query_params @default_query_params ++ [q:  "*:*"]
+  # We add extra filters to the default set to get our other query types 
   @partial_query_params @default_query_params ++ [fq: "fulltext_availability_ss:UNDETERMINED"]
   @sfx_query_params @default_query_params ++ [fq: "fulltext_info_ss:sfx"]
   @no_access_query_params @default_query_params ++ [fq:  "fulltext_info_ss:none"]
@@ -28,7 +28,7 @@ defmodule SolrClient do
   ]
 
   def full_update(number, cursor) do
-    fetch_docs(@full_query_params, number, cursor) 
+    fetch_docs(@default_query_params, number, cursor) 
   end
 
   def partial_update(number, cursor) do
