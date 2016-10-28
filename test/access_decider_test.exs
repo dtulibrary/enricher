@@ -41,6 +41,17 @@ defmodule AccessDeciderTest do
   end
 
   describe "create_update" do 
+    test "journals from SFX should be dtu access", %{fetcher: fetcher} do
+      decision = AccessDecider.create_update(%SolrDoc{format: "journal", id: "167176061", issn_ss: ["20075626"], journal_title_ts: ["Medicina Hospitalaria"], source_ss: ["jnl_sfx"]}, fetcher)
+      assert decision.fulltext_access == ["dtu"]
+      assert decision.fulltext_info == "sfx"
+    end
+    test "journals with open access in the title field should be open access", %{fetcher: fetcher} do
+      oa_journal = %SolrDoc{format: "journal", id: "167138337", issn_ss: ["21647860", "21647844"], journal_title_ts: ["Bioresearch Open Access"], source_ss: ["jnl_sfx"], title_ts: nil}
+      decision = AccessDecider.create_update(oa_journal, fetcher)
+      assert decision.fulltext_access == ["dtupub", "dtu"]
+      assert decision.fulltext_info == "metastore"
+    end
     test "open access article should be publically accessible", %{open_access: oa_doc, fetcher: fetcher} do
       decision = AccessDecider.create_update(oa_doc, fetcher)
       assert ["dtupub", "dtu"] == decision.fulltext_access
@@ -103,19 +114,6 @@ defmodule AccessDeciderTest do
  title_ts: ["Pest management science", "PEST MANAGE SCI"]}
       pest_article = %SolrDoc{pub_date_tis: [2016]}
       refute nil == AccessDecider.sfx_fulltext(pest_article, :bla, pest_journal)
-    end
-  end
-  describe "SFX journals" do
-    test "journals from SFX should be dtu access", %{fetcher: fetcher} do
-      decision = AccessDecider.create_update(%SolrDoc{format: "journal", id: "167176061", issn_ss: ["20075626"], journal_title_ts: ["Medicina Hospitalaria"], source_ss: ["jnl_sfx"]}, fetcher)
-      assert decision.fulltext_access == ["dtu"]
-      assert decision.fulltext_info == "sfx"
-    end
-    test "journals with open access in the title field should be open access", %{fetcher: fetcher} do
-      oa_journal = %SolrDoc{format: "journal", id: "167138337", issn_ss: ["21647860", "21647844"], journal_title_ts: ["Bioresearch Open Access"], source_ss: ["jnl_sfx"], title_ts: nil}
-      decision = AccessDecider.create_update(oa_journal, fetcher)
-      assert decision.fulltext_access == ["dtupub", "dtu"]
-      assert decision.fulltext_info == "sfx"
     end
   end
 end
