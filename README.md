@@ -4,12 +4,12 @@ The purpose of this application is to update Metastore with fulltext availabilit
 
 ## Logic
 
-Enricher's decision making logic is illustrated in the attached flow chart. Basically there are two main sources of knowledge about access: 
+Enricher's decision making logic is illustrated in the attached flow chart. Basically there are two main sources of knowledge about access:
 
   - Fulltext information is embedded within the document itself. In this case, Enricher can use this data to determine fulltext access.
   - Fulltext information is contained within SFX. In this case, Enricher looks ast the SFX data stored within Metastore and determines access rules based on this.
 
-At present, access rules are limited to `dtu` and `dtupub`, meaning either DTU users or public users. Anything which `dtupub` has access to will also be accessible by `dtu`. 
+At present, access rules are limited to `dtu` and `dtupub`, meaning either DTU users or public users. Anything which `dtupub` has access to will also be accessible by `dtu`.
 
 ## Installation
 
@@ -35,7 +35,19 @@ To run the application, run `mix run --no-halt`. This will launch a web interfac
 | GET /debug/article | |  Debugging interface for access decisions |
 | GET /cache/update| |  Interface for updating the journal cache for use in debugging access decisions |
 
-There are four harvest modes, `full`, `partial`, `sfx` and `no_access`. `full` will update all articles and books within the given index, `partial` will only update those with an `UNDETERMINED` status, `sfx` will update all documents which have `fulltext_info_ss:sfx`, i.e. those that have fulltext access through SFX, and `no_access` will update those documents with `fulltext_info_none`, i.e. those which have been assessed not to have accessible fulltext. It is envisioned that `full` should be run infrequently as the non-SFX documents are unlikely to change regularly, `partial` should be run on a daily basis so that new documents are enriched, `sfx` should be run on a weekly basis so that changes to SFX licenses are reflected in the index and `no_access` should be run manually in response to changes in Enricher logic which have implications for documents that have already been processed (e.g. addition of new availability sources).
+There are four harvest modes, `full`, `partial`, `sfx` and `no_access`.
+
+  - `full` will update all articles and books within the given index, should be run infrequently as the non-SFX documents are unlikely to change regularly.
+  - `partial` will only update those with an `UNDETERMINED` status, should be run on a daily basis so that new documents are enriched.
+  - `sfx` will update all documents which have `fulltext_info_ss:sfx`, i.e. those that have fulltext access through SFX, should be run on a weekly basis so that changes to SFX licenses are reflected in the index.
+  - `no_access` will update those documents with `fulltext_info:none`, i.e. those which have been assessed not to have accessible fulltext, should be run manually in response to changes in Enricher logic which have implications for documents that have already been processed (e.g. addition of new availability sources).
+
+### Testing locally
+
+If you have a Solr instance running locally you can test the whole Enricher flow locally:
+```
+curl -d 'mode=partial' -d 'endpoint=http://localhost:8983' http://localhost:4001/harvest/create
+```
 
 ## Debugging Access Decisions
 
