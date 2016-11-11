@@ -14,18 +14,18 @@ defmodule MetastoreUpdater do
 
   @doc "Commit updates to Solr"
   def commit_updates(url: update_url) do
-    Logger.debug "Committing updates to #{update_url <> "?commit=true"}"
+    Logger.info "Committing updates to #{update_url <> "?commit=true"}"
     update_url <> "?commit=true" |> HTTPoison.get!([], timeout: 240000, recv_timeout: 240000, stream_to: self)
   end
 
   @doc """
-  Commit updates to Solr 
+  Commit updates to Solr
   and open a new searcher - should only be
   called at conclusion of harvest.
   """
   def commit_updates(url: update_url, new_searcher: true) do
-    Logger.debug "Committing updates to #{update_url <> "?commit=true"}"
-    update_url <> "?commit=true&openSearcher=true" |> HTTPoison.get!([], stream_to: self)
+    Logger.info "Committing updates to #{update_url <> "?commit=true" <> "&openSearcher=true"}"
+    update_url <> "?commit=true&openSearcher=true" |> HTTPoison.get!([], timeout: :infinity, recv_timeout: :infinity, stream_to: self)
   end
 
   def create_updates(elems) when is_list(elems) do

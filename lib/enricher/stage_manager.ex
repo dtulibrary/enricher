@@ -2,7 +2,7 @@ defmodule Enricher.StageManager do
   @moduledoc """
   This GenServer is responsible for starting
   and stopping harvests and for keeping track of
-  the various stage processes to enable 
+  the various stage processes to enable
   orderly shutdown
   """
   alias Experimental.GenStage
@@ -28,7 +28,7 @@ defmodule Enricher.StageManager do
   def start_harvest(pid, mode) do
     GenServer.cast(pid, {:start_harvest, mode})
   end
-  
+
   def stop_harvest(pid \\ StageManager) do
     GenServer.cast(pid, :stop_harvest)
   end
